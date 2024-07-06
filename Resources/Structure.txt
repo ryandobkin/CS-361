@@ -1,0 +1,42 @@
+Weather Application
+
+
+Backend API TODO
+ Receive requests from frontend API
+ Send responses to frontend API
+ Send requests to external API
+ Receive requests from external API
+
+
+Frontend API TODO
+ Send Requests from Backend API
+ Receive Responses from Backend API
+ Send data to GUI Service
+ Receive data from GUI Service
+ Handle data retrieval for all frontend services
+ - Handle data for Warning Service
+ - Handle Data for Forecast Service
+ - Handle Data for Search Service
+   - This may need an API in itself
+
+
+GUI Service TODO
+ Sends Inputs to Frontend API
+ Receives Outputs (Text Updates, Widget Change, etc.) from Frontend API
+
+
+Warning Service TODO
+ Receives data from Frontend API
+ Sends data to Frontend API
+
+
+Forecast Service TODO
+ Receives data from Frontend API
+ Sends data to Frontend API
+
+
+Search Service TODO
+ Receives data from Frontend API
+ Sends data to frontend API
+
+
