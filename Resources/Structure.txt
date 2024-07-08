@@ -1,4 +1,4 @@
-Weather Application
+Weather Application - Course Project CS 361
 
 
 Backend API TODO
@@ -21,8 +21,19 @@ Frontend API TODO
 
 
 GUI Service TODO
+ Written using eel - HTML/CSS/JS Frontend - https://pypi.org/project/Eel/
  Sends Inputs to Frontend API
  Receives Outputs (Text Updates, Widget Change, etc.) from Frontend API
+
+ Writing First:
+  Last Edit: 7/7/24
+  Made sketch GUI in Figma, ported to HTML, partially adapted and refactored for better integration and utility
+  Use gui_index.html and main.css
+  Currently factored for 1280x720, might update for fullscreen/browser but for now not worth it
+  TODO Some shapes did not transfer over - uv widget, alert warning graphic, wind graphic
+    if possible, implement proper icons from whatever site is called ---- https://react-icons.github.io/react-icons/
+  last edit - Search bar functional, Location display functional, daily rain % functional.
+
 
 
 Warning Service TODO
