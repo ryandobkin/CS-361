@@ -26,15 +26,55 @@ GUI Service TODO
  Receives Outputs (Text Updates, Widget Change, etc.) from Frontend API
 
  Writing First:
-  Last Edit: 7/7/24
+  Last Edit: 7/10/24
   Made sketch GUI in Figma, ported to HTML, partially adapted and refactored for better integration and utility
   Use gui_index.html and main.css
   Currently factored for 1280x720, might update for fullscreen/browser but for now not worth it
-  TODO Some shapes did not transfer over - uv widget, alert warning graphic, wind graphic
+  TODO DONE Some shapes did not transfer over - uv widget, alert warning graphic, wind graphic
     if possible, implement proper icons from whatever site is called ---- https://react-icons.github.io/react-icons/
-  last edit - Search bar functional, Location display functional, daily rain % functional.
+
+  Current Functionality:
+    search query
+    update location display
+    Pretty much everything with 7-day forecast
+        update daily wind value
+        update daily rain value
+        update daily hi/lo values
+        update weather condition value
+        update weather condition graphic
+        update date
+        TODO all that's needed is to implement the API to edit the values
+            Maybe an initialization pass too
+
+  Current API Requests:
+    update_location(location)
+    update_daily_rain_percent(day, percent)
+    update_daily_wind(day, direction, speed)
+    update_daily_hilo(day, hi, lo)
+    update_daily_weather_condition_text(day, condition)
+    update_daily_weather_condition_graphic(day, graphic_name)
 
 
+
+  graphics to make : width, height
+    - clear/sunny          | 55x55
+    - partly cloudy        | 71x60
+    - haze                 | 74x55
+    - fog                  | 71x61
+    - windy                | 63x40
+    - cloudy               | 71x44
+    - thunderstorm         | 71x65
+    - light rain           | 71x65
+    - heavy rain           | 71x65
+    - drizzle              | 71x58
+    - snow                 | 61x66
+    - freezing rain / hail | 71x66
+    heavy snow
+    clear (night)
+    partly cloudy (night)
+    drizzle (night)
+
+coords = (container - graphic)/2
 
 Warning Service TODO
  Receives data from Frontend API
@@ -51,3 +91,22 @@ Search Service TODO
  Sends data to frontend API
 
 
+
+
+
+
+==================================================
+
+             1    2    3    4    5    6
+bg:         286, 306, 326, 266, 366, 386  | bg_daily_#
+wind:       287, 307, 327, 267, 367, 387  | wind_daily_#
+wind value: 288, 308, 328, 268, 368, 388  | wind_value_daily_#
+wind icon:  289, 309, 329, 269, 369, 389  | wind_icon_daily_#
+             6    5    4    3    2    1
+rain:       393, 373, 273, 333, 313, 293  | rain_daily_#
+rain value: 395, 375, 275, 335, 315, 295  | rain_value_daily_#
+rain icon:  name-----                     | rain_icon_daily_#
+hilo:       396, 376, 276, 336, 316, 296  | hilo_daily_#
+cond text:  397, 377, 277, 337, 317, 297  | condition_text_daily_#
+cond graph: 398, 378, 278, 338, 318, 298  | condition_graphic_daily_#
+date:       404, 384, 284, 344, 324, 304  | date_daily_#
