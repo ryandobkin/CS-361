@@ -1,4 +1,6 @@
 Weather Application - Course Project CS 361
+Time spent: 26 hours
+Start today:
 
 
 Backend API TODO
@@ -21,18 +23,20 @@ Frontend API TODO
 
 
 GUI Service TODO
- Written using eel - HTML/CSS/JS Frontend - https://pypi.org/project/Eel/
- Sends Inputs to Frontend API
- Receives Outputs (Text Updates, Widget Change, etc.) from Frontend API
+Written using eel - HTML/CSS/JS Frontend - https://pypi.org/project/Eel/
+Does not process anything - just takes and sends values and controls GUI
+Accepts requests from frontend service?
+Sends requests to frontend service?
 
  Writing First:
-  Last Edit: 7/10/24
+  Last Edit: 7/11/24
   Made sketch GUI in Figma, ported to HTML, partially adapted and refactored for better integration and utility
   Use gui_index.html and main.css
   Currently factored for 1280x720, might update for fullscreen/browser but for now not worth it
   TODO DONE Some shapes did not transfer over - uv widget, alert warning graphic, wind graphic
     if possible, implement proper icons from whatever site is called ---- https://react-icons.github.io/react-icons/
 
+    # To call function from JS, must be outside obj (probably)
   Current Functionality:
     search query
     update location display
@@ -44,7 +48,9 @@ GUI Service TODO
         update weather condition graphic
         update date
         TODO all that's needed is to implement the API to edit the values
-            Maybe an initialization pass too
+            Maybe an initialization pass too -- this but for real lol
+    The way to do it is to import file into main.py thread start file,
+        then start an eel thread and a run() loop. They both reference the web page.
 
   Current API Requests:
     update_location(location)
@@ -53,6 +59,14 @@ GUI Service TODO
     update_daily_hilo(day, hi, lo)
     update_daily_weather_condition_text(day, condition)
     update_daily_weather_condition_graphic(day, graphic_name)
+    update_daily_date(day, date)
+    update_alert(visible, header, body, source)
+
+  hourly tags:
+    temp_hourly_0
+    condition_graphic_hourly_0
+    hourly graphic container size = 72x72
+    time_hourly_0
 
 
 
@@ -73,6 +87,11 @@ GUI Service TODO
     clear (night)
     partly cloudy (night)
     drizzle (night)
+
+graphics
+    HOURLY - should be 55high
+    DAILY - should be 55high
+
 
 coords = (container - graphic)/2
 
