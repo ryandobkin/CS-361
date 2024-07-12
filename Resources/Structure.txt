@@ -1,5 +1,5 @@
 Weather Application - Course Project CS 361
-Time spent: 26 hours
+Time spent: 29 hours
 Start today:
 
 
