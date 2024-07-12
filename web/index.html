@@ -190,7 +190,7 @@
             <span id="time_hourly_0" class="time_hourly">Now</span>
         </div>
     </div>
-    <div id="widget_alert">
+    <div class="widget_alert">
         <div id="bg_alert"></div>
         <span id="header_alert">Severe Weather Alert</span>
         <span id="icon_alert" class="material-symbols-outlined">emergency_home</span>
@@ -208,15 +208,26 @@
         <div class="v8_211"></div>
         <span class="v8_218">Humidity</span></div>
     <div class="widget_wind">
-        <div class="v8_196"></div>
-        <span class="v8_217">Wind</span></div>
+        <div class="bg_wind"></div>
+        <span id="title_wind">Wind</span>
+        <span id="speed_wind">10 mph</span>
+        <span id="status_wind">Calm &#8226; From Southwest</span>
+        <div id="graphic_container_wind">
+            <img id="pointer_graphic_wind" src="./Images/wind_arrow_graphic.svg"/>
+            <img id="compass_graphic_wind" src="./Images/wind_compass_graphic.svg"/>
+        </div>
+    </div>
     <div class="widget_uv">
-        <div class="widget_uv_bg"></div>
-        <div class="widget_uv_graphic_1"></div>
-        <div class="widget_uv_graphic_2"></div>
-        <span class="v8_201">0</span><span class="v8_204">0</span><span class="v8_207">11+</span>
-        <div class="name"></div>
-        <span class="v8_200">UV Index</span><span class="v8_202">Low</span></div>
+        <div id="bg_uv"></div>
+        <div id="graphic_container_uv">
+            <img id="sun_graphic_uv" src="./Images/uv_sun_graphic.svg"/>
+            <img id="pointer_graphic_uv" src="./Images/uv_pointer_graphic.svg"/>
+        </div>
+        <span id="value_uv">0</span>
+        <span id="min_uv">0</span>
+        <span id="max_uv">11+</span>
+        <span id="title_uv">UV Index</span>
+        <span id="status_uv">Low</span></div>
     <div class="widget_sun">
         <div class="v8_215"></div>
         <span class="v8_220">Sunrise & Sunset</span></div>

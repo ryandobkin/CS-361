@@ -266,7 +266,7 @@ body {
 }
 
 /* ALERT WIDGET */
-#widget_alert {
+.widget_alert {
   width: 314px;
   height: 109px;
   background-repeat: no-repeat;
@@ -462,7 +462,7 @@ body {
   left: 520px;
   overflow: hidden;
 }
-.v8_196 {
+.bg_wind {
   width: 138px;
   height: 109px;
   background: rgba(15,21,54,1);
@@ -476,7 +476,7 @@ body {
   border-bottom-right-radius: 10px;
   overflow: hidden;
 }
-.v8_217 {
+#title_wind {
   width: 85px;
   color: rgba(255,255,255,1);
   position: absolute;
@@ -487,6 +487,51 @@ body {
   font-size: 14px;
   opacity: 1;
   text-align: left;
+}
+#speed_wind {
+  opacity: 1;
+  color: white;
+  font-family: Inter;
+  font-weight: Normal;
+  font-size: 14px;
+  top: 40px;
+  left: 9px;
+  position: absolute;
+}
+#status_wind {
+  opacity: 1;
+  color: white;
+  font-family: Inter;
+  font-weight: Normal;
+  font-size: 11px;
+  width: 80px;
+  top: 65px;
+  left: 9px;
+  position: absolute;
+}
+#graphic_container_wind {
+  opacity: 1;
+  width: 50px;
+  height: 50px;
+  left: 75px;
+  top: 25px;
+  position: absolute;
+}
+#pointer_graphic_wind {
+  opacity: 1;
+  height: 34px;
+  width: 34px;
+  left: 8px;
+  top: 8px;
+  position: absolute;
+}
+#compass_graphic_wind {
+  opacity: 1;
+  height: 50px;
+  width: 50px;
+  left: 0px;
+  top: -15px;
+  position: absolute;
 }
 
 /* UV WIDGET */
@@ -502,7 +547,7 @@ body {
   left: 374px;
   overflow: hidden;
 }
-.widget_uv_bg {
+#bg_uv {
   width: 138px;
   height: 109px;
   background: rgba(15,21,54,1);
@@ -516,13 +561,7 @@ body {
   border-bottom-right-radius: 10px;
   overflow: hidden;
 }
-.widget_uv_graphic_1 {
-  color: #fff;
-}
-.widget_uv_graphic_2 {
-  color: #fff;
-}
-.v8_201 {
+#value_uv {
   width: 31px;
   color: rgba(255,255,255,1);
   position: absolute;
@@ -534,7 +573,31 @@ body {
   opacity: 1;
   text-align: left;
 }
-.v8_204 {
+#graphic_container_uv {
+  opacity: 1;
+  width: 60px;
+  height: 60px;
+  left: 70px;
+  top: 29px;
+  position: absolute;
+}
+#sun_graphic_uv {
+  opacity: 1;
+  width: 60px;
+  height: 60px;
+  left: 0px;
+  top: 0px;
+  position: absolute;
+}
+#pointer_graphic_uv {
+  opacity: 1;
+  width: 8px;
+  height: 8px;
+  left: 5px;
+  top: 45px;
+  position: absolute;
+}
+#min_uv {
   width: 8px;
   color: rgba(255,255,255,1);
   position: absolute;
@@ -546,7 +609,7 @@ body {
   opacity: 1;
   text-align: center;
 }
-.v8_207 {
+#max_uv {
   width: 18px;
   color: rgba(255,255,255,1);
   position: absolute;
@@ -558,10 +621,7 @@ body {
   opacity: 1;
   text-align: center;
 }
-.name {
-  color: #fff;
-}
-.v8_200 {
+#title_uv {
   width: 60px;
   color: rgba(255,255,255,1);
   position: absolute;
@@ -573,7 +633,7 @@ body {
   opacity: 1;
   text-align: left;
 }
-.v8_202 {
+#status_uv {
   width: 22px;
   color: rgba(255,255,255,1);
   position: absolute;
@@ -585,6 +645,8 @@ body {
   opacity: 1;
   text-align: left;
 }
+
+/* SUNRISE - SUNSET */
 .widget_sun {
   width: 313px;
   height: 109px;
