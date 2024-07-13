@@ -162,31 +162,6 @@ def update_daily_date(day=0, date='Today'):
     eel.updateDailyDate(daily_widget_name, date)
 
 
-# ALERT WIDGET
-@eel.expose
-def update_alert(visible=True, header="Severe Weather Alert", body="Severe Weather Alert Test", source="National Weather Service"):
-    """
-    Updates Alert widget with new values
-
-    Parameters:
-    -----------
-    visible : bool
-        Should the widget be shown or not
-    header : str
-        The header string text. ~20 characters. Defaults to 'Severe Weather Alert'
-    body : str
-        The body string text. maybe 80 characters. Defaults to 'Severe Weather Alert'
-    source : str
-        The source of the alert. Defaults to 'National Weather Service'
-    """
-    # If setting invisible, shouldn't need to run rest of text update
-    if visible is False:
-        eel.updateAlertWidgetVisibility(0)
-    else:
-        eel.updateAlertWidgetVisibility(1)
-        eel.updateAlertWidget(header, body, source)
-
-
 # HOURLY WIDGET | TEXT
 @eel.expose
 def update_hourly_temp(hour, temp):
@@ -241,6 +216,162 @@ def update_hourly_graphic(hour=0, graphic="hail_rain"):
     offsetx, offsety = get_graphic_offset(graphic, 72, 72)
     print(f"OFFSETX {offsetx} || OFFSETY {offsety}")
     eel.updateHourlyWidgetGraphic(hourly_widget_name, graphic_directory, width, height, offsetx, offsety)
+
+
+# ALERT WIDGET
+@eel.expose
+def update_alert(visible=True, header="Severe Weather Alert", body="Severe Weather Alert Test", source="National Weather Service"):
+    """
+    Updates Alert widget with new values
+
+    Parameters:
+    -----------
+    visible : bool
+        Should the widget be shown or not
+    header : str
+        The header string text. ~20 characters. Defaults to 'Severe Weather Alert'
+    body : str
+        The body string text. maybe 80 characters. Defaults to 'Severe Weather Alert'
+    source : str
+        The source of the alert. Defaults to 'National Weather Service'
+    """
+    # If setting invisible, shouldn't need to run rest of text update
+    if visible is False:
+        eel.updateAlertWidgetVisibility(0)
+    else:
+        eel.updateAlertWidgetVisibility(1)
+        eel.updateAlertWidget(header, body, source)
+
+
+# SUN WIDGET
+@eel.expose
+def update_sun(sunrise=6, sunset=18, dawn=5, dusk=19):
+    """
+    Updates the Sunrise & Sunset widget.
+    All parameter times should be given in 24-hour clock format.
+
+    Parameters:
+    -----------
+    sunrise : int
+        The time of sunrise
+    sunset : int
+        The time of sunset
+    dawn : int
+        The time of dawn
+    dusk : int
+        The time of dusk
+    """
+    sunrise_time, sunset_time, dawn_time, dusk_time, i = 0
+    out_list = [sunrise_time, sunset_time, dawn_time, dusk_time]
+    inp_list = [sunrise, sunset, dawn, dusk]
+    for _ in inp_list:
+        if _ % 12 > 0:
+            out_list[i] = f"{_} PM"
+        else:
+            out_list[i] = f"{_} AM"
+        i+=1
+    eel.updateSunWidgetValues(sunrise, sunset, dawn, dusk)
+
+
+# UV WIDGET
+@eel.expose
+def update_uv(uv_value=0):
+    """
+    Updates the UV Index Widget values.
+
+    Parameters:
+    -----------
+    uv_value : int
+        The value to update the uv index to
+    """
+    if uv_value <= 2:
+        uv_status = "Low"
+    elif uv_value <= 5:
+        uv_status = "Moderate"
+    elif uv_value <= 7:
+        uv_status = "High"
+    elif uv_value <= 10:
+        uv_status = "Very High"
+    elif uv_value > 10:
+        uv_status = "Extreme"
+    else:
+        uv_status = "Undefined"
+    eel.updateUVWidgetValues(uv_value, uv_status)
+
+
+# WIND WIDGET
+@eel.expose
+def update_wind(speed=0, direction='N'):
+    """
+    Updates wind widget values
+
+    Parameters:
+    -----------
+    speed : int
+        The updated speed of the wind
+    direction : str
+        The direction of the wind
+    """
+    # https://www.weather.gov/mfl/beaufort
+    # Check what API gives
+    status = 'Calm'
+    eel.updateWindWidgetValues(speed, status)
+
+
+# HUMIDITY WIDGET
+@eel.expose
+def update_humidity(humidity=0, dew=68):
+    """
+    Updates the humidity widget's values
+
+    Parameters:
+    -----------
+    humidity : int
+        The new value to update the humidity display to
+    dew : int
+        The dew point
+    """
+    # Eventually add way to update graphics - shouldn't be that hard ngl
+    eel.updateHumidityWidgetValues(humidity, dew)
+
+
+# PRESSURE WIDGET
+@eel.expose
+def update_pressure(pressure=30):
+    """
+    Updates pressure widget values.
+
+    Parameters:
+    -----------
+    pressure : int
+        The new pressure
+    """
+    eel.updatePressureWidgetValues(pressure)
+
+
+# NOW WIDGET
+@eel.expose
+def update_now(temp=80, hi=90, lo=70, condition="Partly Cloudy", graphic="partly_cloudy", feels_like="80"):
+    """
+    Updates the Now widget's values.
+
+    Parameters:
+    -----------
+    temp : int
+    hi : int
+    lo : int
+    condition_text : str
+    graphic : str
+    feels_like : int
+    """
+    new_temp = f"{temp}{chr(176)}"
+    hilo = f"High: {hi} Low: {lo}"
+    new_feels_like = f"Feels like {feels_like}{chr(176)}"
+    graphic_directory = './Images/' + graphic + '_graphic.png'
+    width, height = get_graphic_dimensions(graphic)
+    offsetx, offsety = get_graphic_offset(graphic, 120, 95)
+    eel.updateNowWidget(new_temp, hilo, condition, new_feels_like, graphic_directory, width, height, offsetx, offsety)
+
 
 
 # HELPER FUNCTIONS

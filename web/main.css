@@ -12,7 +12,7 @@ body {
   height: 720px;
   background: rgba(255,255,255,1);
   opacity: 1;
-  position: relative;
+  position: absolute;
   top: 0px;
   left: 0px;
   overflow: hidden;
@@ -370,19 +370,21 @@ body {
   left: 0px;
   overflow: hidden;
 }
+
+/* PRESSURE WIDGET */
 .widget_pressure {
   width: 138px;
   height: 109px;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
+  font-family: Inter;
+  font-style: normal;
+  color: white;
   opacity: 1;
   position: absolute;
   top: 336px;
   left: 812px;
   overflow: hidden;
 }
-.v8_213 {
+.bg_pressure {
   width: 138px;
   height: 109px;
   background: rgba(15,21,54,1);
@@ -396,33 +398,71 @@ body {
   border-bottom-right-radius: 10px;
   overflow: hidden;
 }
-.v8_219 {
+#title_pressure {
   width: 85px;
-  color: rgba(255,255,255,1);
   position: absolute;
-  top: 9px;
-  left: 8px;
-  font-family: Inter;
-  font-weight: Normal;
   font-size: 14px;
   opacity: 1;
   text-align: left;
+}
+#value_pressure {
+  position: absolute;
+  left: 9px;
+  top: 40px;
+  font-size: 14px;
+}
+#hg_pressure {
+  position: absolute;
+  left: 9px;
+  top: 65px;
+  font-size: 11px;
+}
+#graphic_container_pressure {
+  left: 70px;
+  top: 25px;
+  position: absolute;
+}
+#gauge_graphic_pressure {
+  width: 50px;
+  height: 50px;
+  left: 5px;
+  position: absolute;
+}
+#pointer_graphic_pressure {
+  position: absolute;
+  left: 26.5px;
+  top: 17.5px;
+  rotate: z 30deg;
+  width: 8px;
+  height: 8px;
+}
+#lo_pressure {
+  position: absolute;
+  top: 75px;
+  left: 75px;
+  font-size: 10px;
+}
+#hi_pressure {
+  position: absolute;
+  top: 75px;
+  left: 105px;
+  font-size: 10px;
 }
 
 /* HUMIDITY WIDGET */
 .widget_humidity {
   width: 138px;
   height: 109px;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
+  color: white;
+  font-family: Inter;
+  font-weight: Normal;
   opacity: 1;
   position: absolute;
   top: 336px;
   left: 666px;
   overflow: hidden;
 }
-.v8_211 {
+#bg_humidity {
   width: 138px;
   height: 109px;
   background: rgba(15,21,54,1);
@@ -436,26 +476,71 @@ body {
   border-bottom-right-radius: 10px;
   overflow: hidden;
 }
-.v8_218 {
-  width: 85px;
-  color: rgba(255,255,255,1);
-  position: absolute;
-  top: 9px;
+.widget_title {
+  top: 8px;
   left: 8px;
-  font-family: Inter;
-  font-weight: Normal;
+  position: absolute;
+}
+#title_humidity {
+  width: 85px;
   font-size: 14px;
   opacity: 1;
   text-align: left;
+}
+#value_humidity {
+  opacity: 1;
+  left: 9px;
+  top: 40px;
+  font-size: 14px;
+  text-align: left;
+  position: absolute;
+}
+#dew_humidity {
+  opacity: 1;
+  font-size: 11px;
+  width: 80px;
+  top: 65px;
+  left: 9px;
+  position: absolute;
+}
+.hilo_humidity {
+  opacity: 1;
+  top: 15px;
+  left: 104px;
+  position: absolute;
+  font-size: 11px;
+}
+#lo_humidity {
+  top: 85px;
+  left: 110.5px;
+}
+#graphic_container_humidity {
+  position: absolute;
+  width: 40px;
+  height: 60px;
+  top: 22.5px;
+  left: 95px;
+}
+#bar_graphic_humidity {
+  position: absolute;
+  width: 30px;
+  height: 45px;
+  left: 4px;
+  top: 12px;
+}
+#pointer_graphic_humidity {
+  top: 44px;
+  left: -2px;
+  width: 8px;
+  height: 8px;
+  position: absolute;
 }
 
 /* WIND WIDGET */
 .widget_wind {
   width: 138px;
   height: 109px;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
+  font-family: Inter;
   opacity: 1;
   position: absolute;
   top: 336px;
@@ -501,8 +586,6 @@ body {
 #status_wind {
   opacity: 1;
   color: white;
-  font-family: Inter;
-  font-weight: Normal;
   font-size: 11px;
   width: 80px;
   top: 65px;
@@ -519,10 +602,10 @@ body {
 }
 #pointer_graphic_wind {
   opacity: 1;
-  height: 34px;
-  width: 34px;
-  left: 8px;
-  top: 8px;
+  height: 26px;
+  width: 26px;
+  left: 12px;
+  top: 12px;
   position: absolute;
 }
 #compass_graphic_wind {
@@ -530,7 +613,7 @@ body {
   height: 50px;
   width: 50px;
   left: 0px;
-  top: -15px;
+  top: -12px;
   position: absolute;
 }
 
@@ -650,82 +733,139 @@ body {
 .widget_sun {
   width: 313px;
   height: 109px;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
   opacity: 1;
   position: absolute;
   top: 336px;
   left: 53px;
   overflow: hidden;
+  font-family: Inter;
+  font-weight: Normal;
+  color: white;
 }
-.v8_215 {
+.bg_sun {
   width: 313px;
   height: 109px;
   background: rgba(15,21,54,1);
   opacity: 1;
   position: absolute;
-  top: 0px;
-  left: 0px;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
   overflow: hidden;
 }
-.v8_220 {
+#title_sun {
   width: 120px;
   color: rgba(255,255,255,1);
   position: absolute;
   top: 9px;
   left: 9px;
-  font-family: Inter;
-  font-weight: Normal;
   font-size: 14px;
   opacity: 1;
   text-align: left;
+}
+#sunrise_sun {
+  position: absolute;
+  font-size: 11px;
+  color: rgba(208,224,255,1);
+  left: 9px;
+  top: 30px;
+}
+#sunset_sun {
+  position: absolute;
+  font-size: 11px;
+  color: rgba(208,224,255,1);
+  left: 9px;
+  top: 70px;
+}
+#sunrise_value_sun {
+  position: absolute;
+  font-size: 14px;
+  left: 9px;
+  top: 42px;
+}
+#sunset_value_sun {
+  position: absolute;
+  font-size: 14px;
+  left: 9px;
+  top: 82px;
+}
+#graphic_container_sun {
+  position: absolute;
+  left: 110px;
+  top: 15px;
+}
+#sunrise_sunset_graphic_sun {
+  width: 155px;
+  height: 60px;
+  position: absolute;
+  left: 30px;
+}
+#dawn_sun {
+  position: absolute;
+  left: 30px;
+  top: 60px;
+  font-size: 11px;
+}
+#dusk_sun {
+  position: absolute;
+  left: 158.5px;
+  top: 60px;
+  font-size: 11px;
+}
+#dawn_value_sun {
+  position: absolute;
+  left: 30px;
+  top: 75px;
+  font-size: 11px;
+  width: 50px;
+  text-align: left;
+}
+#dusk_value_sun {
+  position: absolute;
+  left: 135px;
+  top: 75px;
+  font-size: 11px;
+  width: 50px;
+  text-align: right;
 }
 
 /* NOW WIDGET */
 .widget_now {
   width: 307px;
   height: 166px;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
+  font-family: Inter;
+  font-style: normal;
+  color: white;
   opacity: 1;
   position: absolute;
   top: 162px;
   left: 965px;
   overflow: hidden;
 }
-.v8_237 {
+.bg_now {
   width: 307px;
   height: 166px;
   background: rgba(15,21,54,1);
   opacity: 1;
   position: relative;
-  top: 0px;
-  left: 0px;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
   overflow: hidden;
 }
-.v8_238 {
+#feelslike_now {
   width: 90px;
   color: rgba(255,255,255,1);
   position: absolute;
   top: 131px;
   left: 186px;
-  font-family: Inter;
-  font-weight: Normal;
   font-size: 14px;
   opacity: 1;
   text-align: left;
 }
-.v8_243 {
+#condition_text_now {
   width: 104px;
   color: rgba(208,224,255,1);
   position: absolute;
@@ -737,107 +877,50 @@ body {
   opacity: 1;
   text-align: left;
 }
-.v8_240 {
+#hilo_now {
   width: 120px;
   color: rgba(255,255,255,1);
   position: absolute;
-  top: 84px;
-  left: 7px;
-  font-family: Inter;
-  font-weight: Normal;
+  top: 90px;
+  left: 9px;
   font-size: 14px;
   opacity: 1;
-  text-align: center;
+  text-align: left;
 }
-.v8_242 {
+#temp_now {
   width: 104px;
   color: rgba(208,224,255,1);
   position: absolute;
-  top: 20px;
+  top: 22px;
   left: 11px;
-  font-family: Inter;
-  font-weight: Normal;
   font-size: 60px;
   opacity: 1;
   text-align: left;
 }
-.v8_241 {
+#title_now {
   width: 36px;
   color: rgba(208,224,255,1);
   position: absolute;
   top: 9px;
   left: 10px;
-  font-family: Inter;
-  font-weight: Normal;
   font-size: 16px;
   opacity: 1;
   text-align: left;
 }
-.v8_246 {
-  width: 91px;
-  height: 75px;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
+#graphic_container_now {
   opacity: 1;
+  width: 120px;
+  height: 95px;
+  left: 165px;
+  top: 15px;
   position: absolute;
-  top: 23px;
-  left: 186px;
-  overflow: hidden;
 }
-.v8_247 {
-  width: 54px;
-  height: 54px;
-  background: rgba(218,195,114,1);
-  opacity: 1;
+#condition_graphic_now {
+  width: 99.5px;
+  height: 84px;
+  left: 7.5px;
+  top: 2.5px;
   position: absolute;
-  top: 0px;
-  left: 20px;
-  border-radius: 50%;
-}
-.v8_248 {
-  width: 34px;
-  height: 34px;
-  background: rgba(217,217,217,1);
-  opacity: 1;
-  position: absolute;
-  top: 41px;
-  left: 0px;
-  border-radius: 50%;
-}
-.v8_249 {
-  width: 42px;
-  height: 42px;
-  background: rgba(217,217,217,1);
-  opacity: 1;
-  position: absolute;
-  top: 33px;
-  left: 49px;
-  border-radius: 50%;
-}
-.v8_250 {
-  width: 54px;
-  height: 54px;
-  background: rgba(217,217,217,1);
-  opacity: 1;
-  position: absolute;
-  top: 21px;
-  left: 12px;
-  border-radius: 50%;
-}
-.v8_251 {
-  width: 58px;
-  height: 20px;
-  background: rgba(217,217,217,1);
-  opacity: 1;
-  position: absolute;
-  top: 55px;
-  left: 15px;
-  border-top-left-radius: 2px;
-  border-top-right-radius: 2px;
-  border-bottom-left-radius: 2px;
-  border-bottom-right-radius: 2px;
-  overflow: hidden;
 }
 
 /* HOURLY FORECAST WIDGET */

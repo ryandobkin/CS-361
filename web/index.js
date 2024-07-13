@@ -79,22 +79,6 @@ function updateDailyDate(daily_widget_name, date) {
     document.getElementById(daily_widget_name).innerText = date;
 }
 
-// Updates Alert Widget Visibility
-eel.expose(updateAlertWidgetVisibility);
-function updateAlertWidgetVisibility(visible) {
-    eel.print_in_python("updateAlertWidgetVisibility");
-    document.getElementById("widget_alert").style["opacity"] = visible;
-}
-
-// Updates Alert Widget Text Displays
-eel.expose(updateAlertWidget);
-function updateAlertWidget(head, body, source) {
-    eel.print_in_python("updateAlertWidget");
-    document.getElementById("header_alert").innerText = head;
-    document.getElementById("body_alert").innerText = body;
-    document.getElementById("source_alert").innerText = source;
-}
-
 // Updates Hourly Widget Temp
 eel.expose(updateHourlyWidgetTemp);
 function updateHourlyWidgetTemp(hour, temp) {
@@ -121,4 +105,76 @@ function updateHourlyWidgetGraphic(hourly_widget_name, graphic_directory, width,
     doc_element.style["top"] = offsety;
 }
 
+// Updates Sun Widget Values
+eel.expose(updateSunWidgetValues);
+function updateSunWidgetValues(sunrise, sunset, dawn, dusk) {
+    eel.print_in_python("updateSunWidgetValues");
+    document.getElementById("sunrise_value_sun").innerText = sunrise;
+    document.getElementById("sunset_value_sun").innerText = sunset;
+    document.getElementById("dawn_value_sun").innerText = dawn;
+    document.getElementById("dusk_value_sun").innerText = dusk;
+}
+
+// Updates UV Widget Values
+eel.expose(updateUVWidgetValues);
+function updateUVWidgetValues(uv, status) {
+    eel.print_in_python("updateUVWidgetValues");
+    document.getElementById("value_uv").innerText = uv;
+    document.getElementById("status_uv").innerText = status;
+}
+
+// Updates Wind Widget Values
+eel.expose(updateWindWidgetValues);
+function updateWindWidgetValues(speed, status) {
+    eel.print_in_python("updateWindWidgetValues");
+    document.getElementById("speed_wind").innerText = speed;
+    document.getElementById("status_wind").innerText = status;
+}
+
+// Updates Humidity Widget Values
+eel.expose(updateHumidityWidgetValues);
+function updateHumidityWidgetValues(humidity, dew) {
+    eel.print_in_python("updateHumidityWidgetValues");
+    document.getElementById("value_humidity").innerText = humidity;
+    document.getElementById("dew_humidity").innerText = dew;
+}
+
+// Updates Pressure Widget Values
+eel.expose(updatePressureWidgetValues);
+function updatePressureWidgetValues(pressure) {
+    eel.print_in_python("updatePressureWidgetValues");
+    document.getElementById("value_pressure").innerText = pressure;
+}
+
+// Updates Alert Widget Visibility
+eel.expose(updateAlertWidgetVisibility);
+function updateAlertWidgetVisibility(visible) {
+    eel.print_in_python("updateAlertWidgetVisibility");
+    document.getElementById("widget_alert").style["opacity"] = visible;
+}
+
+// Updates Alert Widget Text Displays
+eel.expose(updateAlertWidget);
+function updateAlertWidget(head, body, source) {
+    eel.print_in_python("updateAlertWidget");
+    document.getElementById("header_alert").innerText = head;
+    document.getElementById("body_alert").innerText = body;
+    document.getElementById("source_alert").innerText = source;
+}
+
+// Updates Now Widget Values
+eel.expose(updateNowWidget);
+function updateNowWidget(new_temp, hilo, condition, new_feels_like, graphic_directory, width, height, offx, offy) {
+    eel.print_in_python("updateNowWidget");
+    document.getElementById("feelslike_now").innerText = new_feels_like;
+    document.getElementById("condition_text_now").innerText = condition;
+    document.getElementById("hilo_now").innerText = hilo;
+    document.getElementById("temp_now").innerText = new_temp;
+    let doc_element = document.getElementById("condition_graphic_now");
+    doc_element.src = graphic_directory;
+    doc_element.width = width;
+    doc_element.height = height;
+    doc_element.style["left"] = offx;
+    doc_element.style["top"] = offy;
+}
 
