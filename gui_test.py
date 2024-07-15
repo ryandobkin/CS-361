@@ -1,6 +1,6 @@
 import eel
 import threading
-import GUI_Service
+import GUIManager
 
 condition_list = ["sunny", "partly_cloudy", "cloudy", "haze", "fog", "windy", "thunderstorm_rain"]
 
@@ -14,7 +14,7 @@ def startup():
         try:
             print(_)
             eel.sleep(2)
-            GUI_Service.update_location(f"Day {_}")
+            GUIManager.update_location(f"Day {_}")
             GUI_Service.update_daily_rain_percent(_, _)
             GUI_Service.update_daily_wind(_, "NW", _)
             GUI_Service.update_daily_hilo(_, _, _)

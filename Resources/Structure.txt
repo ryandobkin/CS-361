@@ -1,6 +1,10 @@
 Weather Application - Course Project CS 361
-Time spent: 33 hours
+Time spent: 36 hours
 Start today:
+
+Message Handlers - Objects that services start threads of (their run() methods). Use inbound_queue[] and outbound_queue[]
+    inbound_message_handler
+    outbound_message_handler
 
 
 Backend API TODO
@@ -9,8 +13,7 @@ Backend API TODO
  Send requests to external API
  Receive requests from external API
 
-
-Frontend API TODO
+Frontend Manager (API) TODO
  Send Requests from Backend API
  Receive Responses from Backend API
  Send data to GUI Service
@@ -21,8 +24,26 @@ Frontend API TODO
  - Handle Data for Search Service
    - This may need an API in itself
 
+ TODO
 
-GUI Service TODO
+
+ WeatherManager object
+ Starting by setting up all GUI vals as init private vals
+ self.location
+ self.hourly_widget = {0: {temp: x, time: y, graphic: z}, 1: {...}, ...}
+ self.now_widget = {temp: 0, hi: 0, lo: 0, condition: 'x', graphic: 'haze', feels_like: 'z'}
+ self.sunrise_widget = {sunrise: 6, sunset: 12, dawn: 10, dusk: 20}
+ self.uv_widget = {uv_value: 0}
+ self.wind_widget = {speed: 0, direction: 'N'}
+ self.humidity_widget = {humidity: 0, dew: 50}
+ self.pressure_widget = {pressure: 30}
+ self.alert_widget = {active_alert: True, header: "Severe Weather Alert", body="High Wind", source="National Weather Service"}
+ self.daily_widget = {0: {date: "Today", graphic: 'haze', condition: 'cloudy', hi: 80, lo: 60, rain: 30, wind_speed: 0, wind_direction = 'N'}, 1...}
+ self.search_query = None
+
+
+
+GUI Service TODO -- partially (pretty much) DONE --
 Written using eel - HTML/CSS/JS Frontend - https://pypi.org/project/Eel/
 Does not process anything - just takes and sends values and controls GUI
 Accepts requests from frontend service?
@@ -52,15 +73,26 @@ Sends requests to frontend service?
     The way to do it is to import file into main.py thread start file,
         then start an eel thread and a run() loop. They both reference the web page.
 
-  Current API Requests:
+  !==!==! Current valid GUIManager functions !==!==!
+    -- TODO DONE --
     update_location(location)
+    search_query(query) - OUTGOING
     update_daily_rain_percent(day, percent)
     update_daily_wind(day, direction, speed)
     update_daily_hilo(day, hi, lo)
     update_daily_weather_condition_text(day, condition)
     update_daily_weather_condition_graphic(day, graphic_name)
     update_daily_date(day, date)
+    update_hourly_temp(hour, temp)
+    update_hourly_time(hour, time)
+    update_hourly_graphic(hour, graphic)
     update_alert(visible, header, body, source)
+    update_sun(sunrise, sunset, dawn, dusk)
+    update_uv(uv_value)
+    update_wind(speed, direction)
+    update_humidity(humidity, dew)
+    update_pressure(pressure)
+    update_now(temp, hi, lo, condition, graphic, feels_like)
 
   hourly tags:
     temp_hourly_0

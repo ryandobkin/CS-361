@@ -1,5 +1,7 @@
 import eel
-import time
+from inbound_message_manager import InboundMessageManager
+from outbound_message_manager import OutboundMessageManager
+import threading
 
 # Globals
 graphic_dimensions_list = {"sunny": (55, 55), "partly_cloudy": (71, 60), "haze": (74, 55),
@@ -8,12 +10,35 @@ graphic_dimensions_list = {"sunny": (55, 55), "partly_cloudy": (71, 60), "haze":
 query_queue = [0]
 
 
+class GuiMessageController:
+    """
+    Manages inbound/outbound messages, as well as value updates.
+    """
+    def __init__(self):
+        self.inbound_ip = '127.0.0.3'
+        self.inbound_port = 23458
+        self.outbound_ip = '127.0.0.1'
+        self.outbound_port = 23456
+        self.outbound_queue = []
+        self.inbound_queue = []
+
+    def main(self):
+        """
+        Main function loop
+        """
+        while True:
+            eel.sleep(2)
+
+
 def run():
     """
     Starts the web page and eel loop.
     """
-    eel.init('web')
-    eel.start('index.html', size=(1614, 937), block=True)
+    try:
+        eel.init('web')
+        eel.start('index.html', size=(1614, 937), block=True)
+    except KeyboardInterrupt:
+        exit(4)
 
 
 # LOCATION WIDGET VV
@@ -449,20 +474,21 @@ def test():
     print("DONE WITH UNIT TEST")
 
 
-def await_request():
-    """
-    Eel thread that maintains the controller loop.
-    """
-    # Check for query
-    if len(query_queue) != 1:
-        # send to queue
-        # return queue update
-        update_location("New Location")
-
-
 if __name__ == '__main__':
-    # Start GUI thread
-    #eel.spawn(test)
-    # eel.spawn(await_request)
+    gui_message_controller = GuiMessageController()
+
+    # Starts the incoming message loop thread
+    inbound_message_manager = InboundMessageManager(gui_message_controller)
+    inbound_message_manager_thread = threading.Thread(target=inbound_message_manager.run)
+    inbound_message_manager_thread.start()
+
+    # Starts the outgoing message loop thread
+    outbound_message_manager = OutboundMessageManager(gui_message_controller)
+    outbound_message_manager_thread = threading.Thread(target=outbound_message_manager.run)
+    outbound_message_manager_thread.start()
+
+    # Starts the incoming message loop thread
+    eel.spawn(gui_message_controller.main)
+
     run()
 
