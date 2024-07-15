@@ -21,7 +21,7 @@ import time
 # Google Cloud Manager
 # https://console.cloud.google.com/apis/credentials?project=weatherapplicationcs361&supportedpurview=project
 
-GOOGLE_API_KEY = 'AIzaSyC_T_HMtLF-SNwPof0CNAkkiyfKAwNQVt4'
+GOOGLE_API_KEY = 'PLACEHOLDER KEY'
 
 class APIManager:
     """
