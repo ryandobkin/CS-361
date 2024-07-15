@@ -4,6 +4,7 @@ import threading
 import requests
 import json
 import time
+import GLOBALS
 
 # https://www.weather.gov/documentation/services-web-api#/default/alerts_active_zone
 # https://weather-gov.github.io/api/general-faqs
@@ -21,7 +22,7 @@ import time
 # Google Cloud Manager
 # https://console.cloud.google.com/apis/credentials?project=weatherapplicationcs361&supportedpurview=project
 
-GOOGLE_API_KEY = 'PLACEHOLDER KEY'
+GOOGLE_API_KEY = GLOBALS.GOOGLE_API_KEY
 
 class APIManager:
     """
@@ -40,8 +41,12 @@ class APIManager:
 
     def manager(self):
         while True:
+            self.request_place_autocomplete_api()
+            print("\n")
+            time.sleep(1)
             self.request_geocode_api()
             time.sleep(5)
+
 
     def request_place_autocomplete_api(self, current_search_query="Alt"):
         """
@@ -91,7 +96,6 @@ class APIManager:
         print(f"Geocoding API Request - location: {chosen_query}\nurl: {request_url}")
         response = requests.get(request_url)
         response = response.json()
-        print(response)
         if response["status"] != "OK":
             print("FAIL - RETRYING")
             self.request_geocode_api()
