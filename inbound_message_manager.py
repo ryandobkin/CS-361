@@ -10,8 +10,8 @@ class InboundMessageManager:
     """
     def __init__(self, service):
         self.service = service
-        self.inbound_ip = service.inbound_ip
-        self.inbound_port = service.inbound_port
+        self.inbound_ip = service.ip
+        self.inbound_port = service.port
         self.outbound_queue = service.outbound_queue
         self.inbound_queue = service.inbound_queue
 
@@ -37,13 +37,11 @@ class InboundMessageManager:
         print(f"[Inbound] Connection from {client_address}")
         with client_socket:
             while True:
-                data = client_socket.recv(1024)
+                data = client_socket.recv(512)
                 if not data:
                     break
 
-                self.inbound_queue.append(data.decode())
-                print(f"[Inbound] Received message: {data.decode()}")
-                ack_message = "Acknowledgement"
-                client_socket.sendall(ack_message.encode())
-                print(f"[Inbound] Sent response: {ack_message}")
+                inbound_data = json.loads(data.decode())
+                self.inbound_queue.append(inbound_data)
+                print(f"[Inbound] Received message: {inbound_data}")
 

@@ -15,11 +15,11 @@ class FrontendManager:
     services. For now, will probably write to files.
     """
     def __init__(self):
-        self.inbound_ip = '127.0.0.1'
-        self.inbound_port = 23456
-        self.outbound_ip = '127.0.0.2'
-        self.outbound_port = 23457
-        self.outbound_queue = ["Test Queue Message 1", "Test Queue Message 2"]
+        self.ip = '127.0.0.1'
+        self.port = 23456
+        self.service_sockets = {"api_manager": ['127.0.0.2', 23457], "gui_manager": ['127.0.0.3', 23458]}
+        self.service_list = {"t": ""}
+        self.outbound_queue = []
         self.inbound_queue = []
         self.location_widget = "Los Angeles, CA"
         self.search_query = None
@@ -37,9 +37,32 @@ class FrontendManager:
 
     def manager(self):
         while True:
-            print(f"[Frontend Manager] outbound queue {self.outbound_queue}")
-            print(f"[Frontend Manager] inbound queue {self.inbound_queue}")
-            time.sleep(2)
+            self.inbound_queue_processor()
+            time.sleep(1)
+
+    def inbound_queue_processor(self):
+        """
+        Processes and sends queue data to the correct socket/services.
+        """
+        if len(self.inbound_queue) > 0:
+            try:
+                message = self.inbound_queue[0]
+                self.inbound_queue.pop(0)
+                if message["service"] == "autocomplete":
+                    if message["type"] == "response":
+                        socket_data = self.service_sockets['gui_manager']
+                        message.update({"socket": [socket_data[0], socket_data[1]]})
+                        print(f"Sending ({message})\nto: ({socket_data[0]}, {socket_data[1]}")
+                        self.outbound_queue.append(message)
+                    elif message["type"] == "request":
+                        socket_data = self.service_sockets['api_manager']
+                        message.update({"socket": [socket_data[0], socket_data[1]]})
+                        print(f"Sending ({message}) to = ({socket_data[0]}, {socket_data[1]}")
+                        self.outbound_queue.append(message)
+            except AttributeError:
+                print("Attribute Error: Not a valid dict")
+
+
 
 
 if __name__ == '__main__':

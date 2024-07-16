@@ -1,0 +1,68 @@
+{
+  'suggestions': [
+    {
+      'placePrediction': {
+        'place': 'places/ChIJ07Vy1jIukEcRCBE0NrhaIIY',
+        'placeId': 'ChIJ07Vy1jIukEcRCBE0NrhaIIY',
+        'text': {
+          'text': 'Aarburg, Switzerland',
+          'matches': [
+            {
+              'endOffset': 7
+            }
+          ]
+        },
+        'structuredFormat': {
+          'mainText': {
+            'text': 'Aarburg',
+            'matches': [
+              {
+                'endOffset': 7
+              }
+            ]
+          },
+          'secondaryText': {
+            'text': 'Switzerland'
+          }
+        },
+        'types': [
+          'geocode',
+          'locality',
+          'political'
+        ]
+      }
+    },
+    {
+      'placePrediction': {
+        'place': 'places/ChIJm57m69hv1EYRQOu9n_m2O1A',
+        'placeId': 'ChIJm57m69hv1EYRQOu9n_m2O1A',
+        'text': {
+          'text': 'aaa, Belarus',
+          'matches': [
+            {
+              'endOffset': 3
+            }
+          ]
+        },
+        'structuredFormat': {
+          'mainText': {
+            'text': 'aaa',
+            'matches': [
+              {
+                'endOffset': 3
+              }
+            ]
+          },
+          'secondaryText': {
+            'text': 'Belarus'
+          }
+        },
+        'types': [
+          'political',
+          'locality',
+          'geocode'
+        ]
+      }
+    }
+  ]
+}

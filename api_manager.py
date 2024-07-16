@@ -29,11 +29,10 @@ class APIManager:
     API Manager
     """
     def __init__(self):
-        self.inbound_port = 23457
-        self.inbound_ip = '127.0.0.2'
-        self.outbound_port = 23456
-        self.outbound_ip = '127.0.0.1'
-        self.outbound_queue = ['API Manager Outbound 1']
+        self.ip = '127.0.0.2'
+        self.port = 23457
+        self.socket_list = {"frontend_manager": ['127.0.0.1', 23456], "gui_manager": ['127.0.0.3', 23458]}
+        self.outbound_queue = []
         self.inbound_queue = []
         self.query_prediction_list = []
         # An array so that previous searches can be easily viewed and swapped to
@@ -41,12 +40,21 @@ class APIManager:
 
     def manager(self):
         while True:
-            self.request_place_autocomplete_api()
-            print("\n")
+            if len(self.inbound_queue) > 0:
+                self.call_correct_api()
             time.sleep(1)
-            self.request_geocode_api()
-            time.sleep(5)
 
+    def call_correct_api(self):
+        """
+        Determines the right API to call based on input message
+        """
+        message = self.inbound_queue.pop(0)
+        if message["service"] == "autocomplete":
+            self.request_place_autocomplete_api(message["data"])
+        elif message["service"] == "geocoding":
+            self.request_geocode_api(message["data"])
+        else:
+            print("[Call Correct API Failed]")
 
     def request_place_autocomplete_api(self, current_search_query="Alt"):
         """
@@ -74,10 +82,22 @@ class APIManager:
         print(f"API Request - url: {url}\npayload: {payload}\nheaders: {headers}")
         response = requests.post(url, data=payload, headers=headers)
         response = response.json()
+        print(f"Response Message: {response}")
         self.query_prediction_list = []
-        for _ in range(5):
-            self.query_prediction_list.append(response['suggestions'][_]['placePrediction']['text']['text'])
-        print(self.query_prediction_list)
+        if "suggestions" in response:
+            for _ in response["suggestions"]:
+                self.query_prediction_list.append(_['placePrediction']['text']['text'])
+            self.outbound_queue.append(
+                {"socket": self.socket_list["gui_manager"],
+                 "type": "response",
+                 "service": "autocomplete",
+                 "data": self.query_prediction_list})
+        else:
+            self.outbound_queue.append(
+                {"socket": self.socket_list["gui_manager"],
+                 "type": "response",
+                 "service": "autocomplete",
+                 "data": ["", "", "", "", ""]})
 
     def request_geocode_api(self, chosen_query="Newport Beach, CA"):
         """
@@ -112,11 +132,11 @@ if __name__ == '__main__':
     # Starts the incoming message loop thread
     inbound_message_manager = InboundMessageManager(api_manager)
     incoming_message_manager_thread = threading.Thread(target=inbound_message_manager.run, daemon=True)
-    #incoming_message_manager_thread.start()
+    incoming_message_manager_thread.start()
 
     # Starts the outgoing message loop thread
     outbound_message_manager = OutboundMessageManager(api_manager)
     outgoing_message_manager_thread = threading.Thread(target=outbound_message_manager.run, daemon=True)
-    #outgoing_message_manager_thread.start()
+    outgoing_message_manager_thread.start()
 
     api_manager.manager()

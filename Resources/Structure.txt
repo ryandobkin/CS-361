@@ -6,7 +6,6 @@ Message Handlers - Objects that services start threads of (their run() methods).
     inbound_message_handler
     outbound_message_handler
 
-
 Backend API TODO
  Receive requests from frontend API
  Send responses to frontend API
@@ -25,6 +24,13 @@ Frontend Manager (API) TODO
    - This may need an API in itself
 
  TODO
+ Message requests should be structured as following
+ {
+   "socket": [ip, port],
+   "type": "request OR response",
+   "service": "autocomplete OR geocoding OR ...",
+   "data": data
+ }
 
 
  WeatherManager object

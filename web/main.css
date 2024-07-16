@@ -1098,10 +1098,9 @@ body {
   position: absolute;
   top: 55px;
   left: 860px;
-  overflow: hidden;
   font-family: Inter;
 }
-.widget_search input[type=text] {
+#input_search {
   float: left;
   position: absolute;
   font-size: 20px;
@@ -1111,13 +1110,69 @@ body {
   width: 310px;
   border: none;
   background-color: transparent;
-  font-family: Inter;
   color: white;
-  &:focus {
+}
+#input_search:focus {
     outline: none;
     color: white;
-   }
 }
+#dropdown_search {
+  width: 340px;
+  height: 145px;
+  background: black;
+  border: 1px solid white;
+  position: absolute;
+  opacity: 1;
+  top: 60px;
+  left: 20px;
+  z-index: 1;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  font-size: 18px;
+}
+#dropdown_text_1_search {
+  height: 20px;
+  left: 16px;
+  top: 10px;
+  position: absolute;
+  text-align: left;
+  color: white;
+}
+#dropdown_text_2_search {
+  height: 20px;
+  left: 16px;
+  top: 35px;
+  position: absolute;
+  text-align: left;
+  color: white;
+}
+#dropdown_text_3_search {
+  height: 20px;
+  left: 16px;
+  top: 60px;
+  position: absolute;
+  text-align: left;
+  color: white;
+}
+#dropdown_text_4_search {
+  height: 20px;
+  left: 16px;
+  top: 85px;
+  position: absolute;
+  text-align: left;
+  color: white;
+}
+#dropdown_text_5_search {
+  height: 20px;
+  left: 16px;
+  top: 110px;
+  position: absolute;
+  text-align: left;
+  color: white;
+}
+
 #search_bg {
   width: 340px;
   height: 40px;

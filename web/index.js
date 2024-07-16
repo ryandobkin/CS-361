@@ -1,13 +1,12 @@
-
 // Checks if enter is pressed while search is highlighted
-document.getElementById('search_input').addEventListener('keydown', (event) => {
+document.getElementById('input_search').addEventListener('keydown', (event) => {
     if (event.defaultPrevented) {
         return;
     }
     if (event.key === "Enter") {
-        let value = document.getElementById('search_input').value;
+        let value = document.getElementById('input_search').value;
         updateSearchQuery(value);
-        document.getElementById('search_input').value = '';
+        document.getElementById('input_search').value = '';
         document.activeElement.blur();
     } else if (event.key === "Escape") {
         document.activeElement.blur();
@@ -18,11 +17,39 @@ document.getElementById('search_input').addEventListener('keydown', (event) => {
     event.preventDefault();
 }, true);
 
+// Set Dropdown Opacity
+eel.expose(setSearchDropdownOpacity);
+function setSearchDropdownOpacity(opacity) {
+    document.getElementById('dropdown_search').style.opacity = opacity;
+}
+
+// Update dropdown text fields
+eel.expose(updateSearchAutocompleteDropdownFields);
+function updateSearchAutocompleteDropdownFields(autocomplete_list) {
+    document.getElementById('dropdown_text_1_search').innerText = autocomplete_list[0];
+    document.getElementById('dropdown_text_2_search').innerText = autocomplete_list[1];
+    document.getElementById('dropdown_text_3_search').innerText = autocomplete_list[2];
+    document.getElementById('dropdown_text_4_search').innerText = autocomplete_list[3];
+    document.getElementById('dropdown_text_5_search').innerText = autocomplete_list[4];
+}
+
 // Search Query
 eel.expose(updateSearchQuery);
 function updateSearchQuery(query) {
     eel.print_in_python("updateSearchQuery");
     eel.search_query(query);
+}
+
+// Search Autocomplete Update
+eel.expose(updateSearchAutocomplete);
+function updateSearchAutocomplete(autocomplete_query) {
+    return document.getElementById('input_search').value;
+}
+
+// Check if search in focus
+eel.expose(updateSearchInFocus);
+function updateSearchInFocus() {
+    return document.activeElement === document.getElementById("input_search");
 }
 
 // Updates Location Display
