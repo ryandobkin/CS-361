@@ -1122,7 +1122,7 @@ body {
   background: black;
   border: 1px solid white;
   position: absolute;
-  opacity: 1;
+  opacity: 0;
   top: 60px;
   left: 20px;
   z-index: 1;

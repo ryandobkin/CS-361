@@ -24,31 +24,31 @@ import GLOBALS
 
 GOOGLE_API_KEY = GLOBALS.GOOGLE_API_KEY
 
+
 class APIManager:
     """
     API Manager
     """
-    def __init__(self):
-        self.ip = '127.0.0.2'
-        self.port = 23457
-        self.socket_list = {"frontend_manager": ['127.0.0.1', 23456], "gui_manager": ['127.0.0.3', 23458]}
-        self.outbound_queue = []
-        self.inbound_queue = []
+    def __init__(self, manager):
+        self.manager = manager
+        self.api_request = manager.api_request_list
+        self.api_response = manager.api_response_list
         self.query_prediction_list = []
         # An array so that previous searches can be easily viewed and swapped to
         self.chosen_query = []
 
-    def manager(self):
+    def run(self):
         while True:
-            if len(self.inbound_queue) > 0:
+            if len(self.api_request) > 0:
+                # print("API_REQUEST > 0")
                 self.call_correct_api()
-            time.sleep(1)
+            time.sleep(.1)
 
     def call_correct_api(self):
         """
         Determines the right API to call based on input message
         """
-        message = self.inbound_queue.pop(0)
+        message = self.api_request.pop(0)
         if message["service"] == "autocomplete":
             self.request_place_autocomplete_api(message["data"])
         elif message["service"] == "geocoding":
@@ -87,17 +87,29 @@ class APIManager:
         if "suggestions" in response:
             for _ in response["suggestions"]:
                 self.query_prediction_list.append(_['placePrediction']['text']['text'])
-            self.outbound_queue.append(
-                {"socket": self.socket_list["gui_manager"],
-                 "type": "response",
-                 "service": "autocomplete",
-                 "data": self.query_prediction_list})
+            self.api_response.append({"service": "autocomplete",
+                                 "data": self.query_prediction_list,
+                                 "origin_data": current_search_query})
+
         else:
-            self.outbound_queue.append(
-                {"socket": self.socket_list["gui_manager"],
-                 "type": "response",
-                 "service": "autocomplete",
-                 "data": ["", "", "", "", ""]})
+            print("NO VALID AUTOCOMPLETES")
+            self.api_response.append({"service": "autocomplete",
+                                      "data": [],
+                                      "origin_data": current_search_query})
+
+        #     self.outbound_queue.append(
+        #         {"socket": self.socket_list["gui_manager"],
+        #          "type": "response",
+        #          "service": "autocomplete",
+        #          "data": self.query_prediction_list,
+        #          "origin_data": current_search_query})
+        # else:
+        #     self.outbound_queue.append(
+        #         {"socket": self.socket_list["gui_manager"],
+        #          "type": "response",
+        #          "service": "autocomplete",
+        #          "data": ["", "", "", "", ""],
+        #          "origin_data": current_search_query})
 
     def request_geocode_api(self, chosen_query="Newport Beach, CA"):
         """

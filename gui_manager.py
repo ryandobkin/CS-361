@@ -1,6 +1,7 @@
 import eel
 from inbound_message_manager import InboundMessageManager
 from outbound_message_manager import OutboundMessageManager
+from api_manager import APIManager
 import threading
 import time
 
@@ -22,19 +23,19 @@ class GuiMessageController:
         self.socket_list = {"frontend_manager": ["127.0.0.1", 23456], "api_manager": ["127.0.0.2", 23457]}
         self.outbound_queue = []
         self.inbound_queue = []
-        self.recent_search = []
         self.current_prediction_list = []
+        self.api_request_list = []
+        self.api_response_list = []
         self.current_search_term = ""
         self.start_time = 0
 
     def main(self):
         """
-        Main function loop
+        Main object loop
         """
-        while True:
-            eel.spawn(self.inbound_queue_processor)
-            eel.spawn(self.autocomplete_update_loop)
-            eel.sleep(1)
+        # eel.spawn(self.inbound_queue_processor)
+        eel.spawn(self.autocomplete_update_loop)
+        eel.sleep(1)
 
     def inbound_queue_processor(self):
         """
@@ -47,7 +48,7 @@ class GuiMessageController:
                     print(f"Processing Incoming Message: {message}")
                     if message["type"] == "response":
                         if message["service"] == "autocomplete":
-                            search_display_autocomplete(message["data"])
+                            search_display_autocomplete(message["data"], message["origin_data"])
             except TypeError or AttributeError:
                 print("Inbound Processing Error")
             eel.sleep(.25)
@@ -65,13 +66,12 @@ class GuiMessageController:
                     last_update = time.time()
                     self.current_search_term = recent_search
                 time_now = time.time()
-                if (time_now - last_update) > 1 and last_update != 0:
+                if (time_now - last_update) > 0.15 and last_update != 0:
                     last_update = 0
-                    print("AAA")
                     search_autocomplete_update(self.current_search_term)
             else:
                 eel.setSearchDropdownOpacity("0")
-            eel.sleep(0.25)
+            eel.sleep(0.1)
 
 
 def run():
@@ -131,32 +131,37 @@ def search_autocomplete_update(partial_query="Default"):
     """
     gui_message_controller.start_time = time.time()
     print(f"Updating search autocomplete: {partial_query}")
-    autocomplete_query = {"socket": gui_message_controller.socket_list["api_manager"],
-                          "type": "request",
-                          "service": "autocomplete",
+    autocomplete_query = {"service": "autocomplete",
                           "data": partial_query}
-    gui_message_controller.outbound_queue.append(autocomplete_query)
+    gui_message_controller.api_request_list.append(autocomplete_query)
+    search_display_autocomplete()
 
 
 # SEARCH WIDGET DISPLAY AUTOCOMPLETE OPTIONS
 @eel.expose
-def search_display_autocomplete(autocomplete_list):
+def search_display_autocomplete():
     """
     Updates the dropdown search menu with the autocomplete predictions.
     """
-    gui_message_controller.current_prediction_list = autocomplete_list
-    #print("AAA", autocomplete_list)
+    while True:
+        if len(gui_message_controller.api_response_list) > 0:
+            break
+        eel.sleep(0.15)
+    response = gui_message_controller.api_response_list.pop(0)
+    gui_message_controller.current_prediction_list = response["data"]
     display_list = ["", "", "", "", ""]
     list_counter = 0
-    for _ in range(len(autocomplete_list)):
-        display_list[_] = autocomplete_list[_]
+    for _ in range(len(gui_message_controller.current_prediction_list)):
+        display_list[_] = gui_message_controller.current_prediction_list[_]
         list_counter += 1
         if list_counter == 5:
             break
-    eel.updateSearchAutocompleteDropdownFields(display_list)
-    print(autocomplete_list)
-    end_time = time.time()
-    print(f"Total time: {end_time - gui_message_controller.start_time}")
+    if response["origin_data"] == gui_message_controller.current_search_term:
+        eel.updateSearchAutocompleteDropdownFields(display_list)
+        end_time = time.time()
+        print(f"Total time: {end_time - gui_message_controller.start_time}")
+    else:
+        print("Discarding autocomplete set")
 
 
 # DAILY WIDGET | RAIN
@@ -568,13 +573,18 @@ if __name__ == '__main__':
 
     # Starts the incoming message loop thread
     inbound_message_manager = InboundMessageManager(gui_message_controller)
-    inbound_message_manager_thread = threading.Thread(target=inbound_message_manager.run)
+    inbound_message_manager_thread = threading.Thread(target=inbound_message_manager.run, daemon=True)
     inbound_message_manager_thread.start()
 
     # Starts the outgoing message loop thread
     outbound_message_manager = OutboundMessageManager(gui_message_controller)
-    outbound_message_manager_thread = threading.Thread(target=outbound_message_manager.run)
+    outbound_message_manager_thread = threading.Thread(target=outbound_message_manager.run, daemon=True)
     outbound_message_manager_thread.start()
+
+    # Starts the api manager loop thread
+    api_manager = APIManager(gui_message_controller)
+    api_manager_thread = threading.Thread(target=api_manager.run, daemon=True)
+    api_manager_thread.start()
 
     # Starts the incoming message loop thread
     eel.spawn(gui_message_controller.main)
