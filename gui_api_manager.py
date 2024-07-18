@@ -1,5 +1,3 @@
-from inbound_message_manager import InboundMessageManager
-from outbound_message_manager import OutboundMessageManager
 import threading
 import requests
 import json
@@ -79,10 +77,10 @@ class APIManager:
             'X-Goog-Api-Key': api_key
         }
 
-        print(f"API Request - url: {url}\npayload: {payload}\nheaders: {headers}")
+        # print(f"API Request - url: {url}\npayload: {payload}\nheaders: {headers}")
         response = requests.post(url, data=payload, headers=headers)
         response = response.json()
-        print(f"Response Message: {response}")
+        # print(f"Response Message: {response}")
         self.query_prediction_list = []
         if "suggestions" in response:
             for _ in response["suggestions"]:
@@ -92,63 +90,7 @@ class APIManager:
                                  "origin_data": current_search_query})
 
         else:
-            print("NO VALID AUTOCOMPLETES")
+            # print("NO VALID AUTOCOMPLETES")
             self.api_response.append({"service": "autocomplete",
-                                      "data": [],
+                                      "data": [False],
                                       "origin_data": current_search_query})
-
-        #     self.outbound_queue.append(
-        #         {"socket": self.socket_list["gui_manager"],
-        #          "type": "response",
-        #          "service": "autocomplete",
-        #          "data": self.query_prediction_list,
-        #          "origin_data": current_search_query})
-        # else:
-        #     self.outbound_queue.append(
-        #         {"socket": self.socket_list["gui_manager"],
-        #          "type": "response",
-        #          "service": "autocomplete",
-        #          "data": ["", "", "", "", ""],
-        #          "origin_data": current_search_query})
-
-    def request_geocode_api(self, chosen_query="Newport Beach, CA"):
-        """
-        Requests the Google maps geocoding api for coordinates based on chosen query location.
-        Returns a list of (latitude, longitude) to 7 decimal places around the center of the city.
-
-
-        https://developers.google.com/maps/documentation/geocoding/requests-geocoding
-        """
-        base_url = "https://maps.googleapis.com/maps/api/geocode/json?address="
-        api_key = GOOGLE_API_KEY
-
-        url_query = chosen_query.replace(" ", "+")
-        request_url = base_url + url_query + '&key=' + api_key
-
-        print(f"Geocoding API Request - location: {chosen_query}\nurl: {request_url}")
-        response = requests.get(request_url)
-        response = response.json()
-        if response["status"] != "OK":
-            print("FAIL - RETRYING")
-            self.request_geocode_api()
-        query_geocode = (response["results"][0]["geometry"]["location"]["lat"],
-                         response["results"][0]["geometry"]["location"]["lng"])
-        print(query_geocode)
-        return query_geocode
-
-
-
-if __name__ == '__main__':
-    api_manager = APIManager()
-
-    # Starts the incoming message loop thread
-    inbound_message_manager = InboundMessageManager(api_manager)
-    incoming_message_manager_thread = threading.Thread(target=inbound_message_manager.run, daemon=True)
-    incoming_message_manager_thread.start()
-
-    # Starts the outgoing message loop thread
-    outbound_message_manager = OutboundMessageManager(api_manager)
-    outgoing_message_manager_thread = threading.Thread(target=outbound_message_manager.run, daemon=True)
-    outgoing_message_manager_thread.start()
-
-    api_manager.manager()

@@ -5,9 +5,9 @@ document.getElementById('input_search').addEventListener('keydown', (event) => {
     }
     if (event.key === "Enter") {
         let value = document.getElementById('input_search').value;
+        document.activeElement.blur();
         updateSearchQuery(value);
         document.getElementById('input_search').value = '';
-        document.activeElement.blur();
     } else if (event.key === "Escape") {
         document.activeElement.blur();
     }
@@ -35,14 +35,14 @@ function updateSearchAutocompleteDropdownFields(autocomplete_list) {
 
 // Search Query
 eel.expose(updateSearchQuery);
-function updateSearchQuery(query) {
+async function updateSearchQuery(query) {
     eel.print_in_python("updateSearchQuery");
-    eel.search_query(query);
+    eel.search_query(query)();
 }
 
 // Search Autocomplete Update
 eel.expose(updateSearchAutocomplete);
-function updateSearchAutocomplete(autocomplete_query) {
+function updateSearchAutocomplete() {
     return document.getElementById('input_search').value;
 }
 

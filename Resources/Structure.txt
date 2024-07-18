@@ -1,5 +1,5 @@
 Weather Application - Course Project CS 361
-Time spent: 36 hours
+Time spent: 38 hours
 Start today:
 
 Message Handlers - Objects that services start threads of (their run() methods). Use inbound_queue[] and outbound_queue[]
@@ -141,6 +141,29 @@ Warning Service TODO
 Forecast Service TODO
  Receives data from Frontend API
  Sends data to Frontend API
+
+ API gives the following results in the "forecast" url:
+    given day, given day overnight/night
+    temp, precipitation%, wind/speed/direction, short forecast, detailed forecast
+
+ General Data Needed:
+    Daily
+        - ShortDescription
+        Min Max
+        - Rain %
+        - Wind Speed + Dir
+        Sunrise Sunset Dawn Dusk
+    Hourly
+        - Temp
+        Min Max
+        - ShortDescription
+        - Wind
+        Feels Like
+        UV Index
+        - Humidity
+        - Dew Point
+        Pressure
+
 
 
 Search Service TODO
