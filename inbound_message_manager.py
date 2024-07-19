@@ -37,7 +37,7 @@ class InboundMessageManager:
         print(f"[Inbound] Connection from {client_address}")
         with client_socket:
             while True:
-                data = client_socket.recv(512)
+                data = client_socket.recv(5120)
                 if not data:
                     break
 

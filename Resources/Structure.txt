@@ -1,29 +1,32 @@
 Weather Application - Course Project CS 361
-Time spent: 38 hours
+Time spent: 40 hours
 Start today:
+
+SOCKETS
+    gui_manager      - '127.0.0.3', 23458
+    frontend_manager - '127.0.0.1', 23456
+    forecast_service - '127.0.0.2', 23457
+
+NEEDED DATA BY SERVICE/WIDGET
+- Daily
+    -Time
+    -temp
+    -Short Condition
+    -Hi Lo
+    -Rain %
+    -Wind
+- Hourly
+    -temp
+    -time
+    -graphic
+- Widget
+
 
 Message Handlers - Objects that services start threads of (their run() methods). Use inbound_queue[] and outbound_queue[]
     inbound_message_handler
     outbound_message_handler
 
-Backend API TODO
- Receive requests from frontend API
- Send responses to frontend API
- Send requests to external API
- Receive requests from external API
 
-Frontend Manager (API) TODO
- Send Requests from Backend API
- Receive Responses from Backend API
- Send data to GUI Service
- Receive data from GUI Service
- Handle data retrieval for all frontend services
- - Handle data for Warning Service
- - Handle Data for Forecast Service
- - Handle Data for Search Service
-   - This may need an API in itself
-
- TODO
  Message requests should be structured as following
  {
    "socket": [ip, port],
@@ -149,17 +152,37 @@ Forecast Service TODO
  General Data Needed:
     Daily
         - ShortDescription
-        Min Max
+        - Min Max
         - Rain %
         - Wind Speed + Dir
-        Sunrise Sunset Dawn Dusk
+        - Sunrise Sunset Dawn Dusk
+        Daily JSON Period Breakdown:
+        {
+            "number": 1,
+            "name": "This Afternoon",
+            "startTime": "2024-07-18T14:00:00-04:00",
+            "endTime": "2024-07-18T18:00:00-04:00",
+            "isDaytime": true,
+            "temperature": 89,
+            "temperatureUnit": "F",
+            "temperatureTrend": "",
+            "probabilityOfPrecipitation": {
+              "unitCode": "wmoUnit:percent",
+              "value": 30
+            },
+            "windSpeed": "8 mph",
+            "windDirection": "N",
+            "icon": "https://api.weather.gov/icons/land/day/tsra,30?size=medium",
+            "shortForecast": "Isolated Showers And Thunderstorms",
+            "detailedForecast": "Scattered rain showers before 5pm, then isolated showers and thunderstorms. Mostly cloudy, with a high near 89. North wind around 8 mph. Chance of precipitation is 30%."
+        },
     Hourly
         - Temp
         Min Max
         - ShortDescription
         - Wind
-        Feels Like
-        UV Index
+        - Feels Like
+        - UV Index
         - Humidity
         - Dew Point
         Pressure
