@@ -6,6 +6,7 @@ import threading
 import time
 
 # Globals
+# NO LONGER ACCURATE WITH .SVGs
 graphic_dimensions_list = {"sunny": (55, 55), "partly_cloudy": (71, 60), "haze": (74, 55),
  "fog": (71, 61), "windy": (63, 40), "cloudy": (71, 44), "thunderstorm_rain": (71, 65), "light_rain": (71, 65),
  "heavy_rain": (71, 65), "drizzle_rain": (71, 58), "hail_rain": (71, 66), "snow": (61, 66)}
@@ -46,12 +47,10 @@ class GuiMessageController:
                 if len(self.inbound_queue) > 0:
                     message = self.inbound_queue.pop(0)
                     print(f"Processing Incoming Message: {message}")
-                    # if message["service"] == "autocomplete":
-                    #     search_display_autocomplete(message["data"], message["origin_data"])
-                    if message["service"] == "geocoding":
-                        self.outbound_queue.append(message)
-            except TypeError or AttributeError:
-                print("Inbound Processing Error")
+                    if message["service"] == "forecast":
+                        self.update_forecast(message)
+            except KeyboardInterrupt as e:
+                print("Inbound Processing Error:", e)
             eel.sleep(.25)
 
     def autocomplete_update_loop(self):
@@ -76,6 +75,66 @@ class GuiMessageController:
             else:
                 eel.setSearchDropdownOpacity("0")
             eel.sleep(0.1)
+
+    def update_forecast_request(self):
+        """
+        Sends a request to the forecast service via the frontend manager to get updates location data.
+        """
+        while len(self.api_response_list) < 1:
+            eel.sleep(.1)
+        geocoding_coordinates = self.api_response_list.pop(0)
+        if geocoding_coordinates["service"] != "geocoding":
+            self.api_response_list.append(geocoding_coordinates)
+            print("GUI MANAGER UPDATE FORECAST REQUEST - Wrong update message received")
+        else:
+            request_message = {"socket": self.socket_list["frontend_manager"],
+                               "type": "request",
+                               "service": "forecast",
+                               "data": geocoding_coordinates["data"]}
+            self.outbound_queue.append(request_message)
+
+    def update_forecast(self, forecast_message):
+        """
+        Calls all relevant services to update GUI based on incoming update forcast JSON message
+        """
+        try:
+            forecast = forecast_message["data"]
+            daily_forecast = forecast["daily_forecast"]
+            hourly_forecast = forecast["hourly_forecast"]
+            widget_forecast = forecast["widget_forecast"]
+            self.update_daily_forecasts(daily_forecast)
+        except KeyboardInterrupt as e:
+            print("UpdateForecast Error:", e)
+
+    def update_daily_forecasts(self, daily_json):
+        print(daily_json)
+        try:
+            day = 0
+            for daily_fc_top in daily_json:
+                print("day", day, daily_fc_top)
+                daily_fc = daily_json[daily_fc_top]
+                update_daily_date(day, daily_fc["name"])
+                update_daily_weather_condition_graphic(day)
+                condition_list = daily_fc["shortForecast"].split(' ')
+                update_daily_weather_condition_text(day, f"{condition_list[0]} {condition_list[1]}")
+                update_daily_hilo(day, daily_fc["maxTemperature"], daily_fc["minTemperature"])
+                if daily_fc["rainProb"] is None:
+                    daily_rain = 0
+                else:
+                    daily_rain = daily_fc["rainProb"]
+                update_daily_rain_percent(day, daily_rain)
+                update_daily_wind(day, daily_fc["windDirection"], daily_fc["windSpeed"])
+                if day == 6:
+                    break
+                day += 1
+        except KeyboardInterrupt as e:
+            print("UpdateDailyForecasts Error:", e)
+
+    def update_hourly_forecasts(self, hourly_json):
+        pass
+
+    def update_widget_forecasts(self, widget_forecast):
+        pass
 
 
 def run():
@@ -122,6 +181,7 @@ def search_query(query='Default'):
                      "data": top_query_pred}
         update_location(top_query_pred)
         gui_message_controller.api_request_list.append(query_out)
+        gui_message_controller.update_forecast_request()
         return True
     else:
         return False
@@ -223,7 +283,7 @@ def update_daily_wind(day=0, direction='N', speed=0):
         The speed value of the wind. Should be an int.
     """
     daily_widget_name = 'wind_value_daily_' + str(day)
-    new_wind_value = f"{direction} {speed} mph"
+    new_wind_value = f"{direction} {speed}"
     #print(f"WIND | Value 1: {daily_widget_name} | Value 2: {new_wind_value}")
     eel.updateDailyWind(daily_widget_name, new_wind_value)
 

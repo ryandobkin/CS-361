@@ -27,6 +27,7 @@ class APIManager:
     """
     API Manager
     """
+
     def __init__(self, manager):
         self.manager = manager
         self.api_request = manager.api_request_list
@@ -52,7 +53,7 @@ class APIManager:
         elif message["service"] == "geocoding":
             self.request_geocode_api(message["data"])
         else:
-            print("[Call Correct API Failed]")
+            print("[GUI API - Call Correct API Failed]")
 
     def request_place_autocomplete_api(self, current_search_query="Alt"):
         """
@@ -86,11 +87,38 @@ class APIManager:
             for _ in response["suggestions"]:
                 self.query_prediction_list.append(_['placePrediction']['text']['text'])
             self.api_response.append({"service": "autocomplete",
-                                 "data": self.query_prediction_list,
-                                 "origin_data": current_search_query})
+                                      "data": self.query_prediction_list,
+                                      "origin_data": current_search_query})
 
         else:
             # print("NO VALID AUTOCOMPLETES")
             self.api_response.append({"service": "autocomplete",
                                       "data": [False],
                                       "origin_data": current_search_query})
+
+    def request_geocode_api(self, chosen_query="Irvine, CA"):
+        """
+        Requests the Google Maps geocoding api for coordinates based on chosen query location.
+        Returns a list of (latitude, longitude) to 7 decimal places around the center of the city.
+
+
+        https://developers.google.com/maps/documentation/geocoding/requests-geocoding
+        """
+        base_url = "https://maps.googleapis.com/maps/api/geocode/json?address="
+        api_key = GOOGLE_API_KEY
+
+        url_query = chosen_query.replace(" ", "+")
+        request_url = base_url + url_query + '&key=' + api_key
+
+        print(f"Geocoding API Request - location: {chosen_query}\nurl: {request_url}")
+        response = requests.get(request_url)
+        response = response.json()
+        if response["status"] != "OK":
+            print("FAIL - RETRYING")
+            self.request_geocode_api()
+        query_geocode = (response["results"][0]["geometry"]["location"]["lat"],
+                         response["results"][0]["geometry"]["location"]["lng"])
+        outgoing_message = {"service": "geocoding",
+                            "data": query_geocode}
+        self.api_response.append(outgoing_message)
+

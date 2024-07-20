@@ -601,188 +601,184 @@
 }
 }
 
-//RESPONSE
 
 {
-  "socket": [
-    "127.0.0.1",
-    23456
-  ],
-  "type": "response",
-  "service": "forecast",
-  "data": {
-    "daily_forecast": {
-      "day_0": {
-        "maxTemperature": 30.555555555555557,
-        "minTemperature": 22.22222222222222,
-        "name": "Tonight",
-        "startTime": "2024-07-18T20:00:00-04:00",
-        "endTime": "2024-07-19T06:00:00-04:00",
-        "isDaytime": false,
-        "temperature": 72,
-        "rainProb": 20,
-        "windSpeed": "3 to 8 mph",
-        "windDirection": "N",
-        "shortForecast": "Isolated Rain Showers then Mostly Cloudy"
-      },
-      "day_1": {
-        "maxTemperature": 31.666666666666668,
-        "minTemperature": 22.22222222222222,
-        "name": "Friday",
-        "startTime": "2024-07-19T06:00:00-04:00",
-        "endTime": "2024-07-19T18:00:00-04:00",
-        "isDaytime": true,
-        "temperature": 89,
-        "rainProb": null,
-        "windSpeed": "3 to 9 mph",
-        "windDirection": "NE",
-        "shortForecast": "Mostly Sunny"
-      },
-      "day_2": {
-        "maxTemperature": 30,
-        "minTemperature": 21.666666666666668,
-        "name": "Friday Night",
-        "startTime": "2024-07-19T18:00:00-04:00",
-        "endTime": "2024-07-20T06:00:00-04:00",
-        "isDaytime": false,
-        "temperature": 72,
-        "rainProb": null,
-        "windSpeed": "2 to 6 mph",
-        "windDirection": "SE",
-        "shortForecast": "Partly Cloudy"
-      },
-      "day_3": {
-        "maxTemperature": 32.22222222222222,
-        "minTemperature": 22.22222222222222,
-        "name": "Saturday",
-        "startTime": "2024-07-20T06:00:00-04:00",
-        "endTime": "2024-07-20T18:00:00-04:00",
-        "isDaytime": true,
-        "temperature": 86,
-        "rainProb": 40,
-        "windSpeed": "2 to 8 mph",
-        "windDirection": "S",
-        "shortForecast": "Chance Showers And Thunderstorms"
-      },
-      "day_4": {
-        "maxTemperature": 31.666666666666668,
-        "minTemperature": 22.77777777777778,
-        "name": "Saturday Night",
-        "startTime": "2024-07-20T18:00:00-04:00",
-        "endTime": "2024-07-21T06:00:00-04:00",
-        "isDaytime": false,
-        "temperature": 71,
-        "rainProb": 40,
-        "windSpeed": "2 to 7 mph",
-        "windDirection": "W",
-        "shortForecast": "Chance Showers And Thunderstorms"
-      },
-      "day_5": {
-        "maxTemperature": 31.666666666666668,
-        "minTemperature": 23.333333333333332,
-        "name": "Sunday",
-        "startTime": "2024-07-21T06:00:00-04:00",
-        "endTime": "2024-07-21T18:00:00-04:00",
-        "isDaytime": true,
-        "temperature": 90,
-        "rainProb": 30,
-        "windSpeed": "5 mph",
-        "windDirection": "W",
-        "shortForecast": "Chance Showers And Thunderstorms"
-      },
-      "day_6": {
-        "maxTemperature": 32.22222222222222,
-        "minTemperature": 23.333333333333332,
-        "name": "Sunday Night",
-        "startTime": "2024-07-21T18:00:00-04:00",
-        "endTime": "2024-07-22T06:00:00-04:00",
-        "isDaytime": false,
-        "temperature": 72,
-        "rainProb": 30,
-        "windSpeed": "5 mph",
-        "windDirection": "S",
-        "shortForecast": "Chance Showers And Thunderstorms"
-      }
-    },
-    "hourly_forecast": {
-      "hr_0": {
-        "startTime": "2024-07-18T20:00:00-04:00",
-        "endTime": "2024-07-18T21:00:00-04:00",
-        "temperature": 82,
-        "shortForecast": "Mostly Cloudy"
-      },
-      "hr_1": {
-        "startTime": "2024-07-18T21:00:00-04:00",
-        "endTime": "2024-07-18T22:00:00-04:00",
-        "temperature": 81,
-        "shortForecast": "Isolated Rain Showers"
-      },
-      "hr_2": {
-        "startTime": "2024-07-18T22:00:00-04:00",
-        "endTime": "2024-07-18T23:00:00-04:00",
-        "temperature": 80,
-        "shortForecast": "Isolated Rain Showers"
-      },
-      "hr_3": {
-        "startTime": "2024-07-18T23:00:00-04:00",
-        "endTime": "2024-07-19T00:00:00-04:00",
-        "temperature": 79,
-        "shortForecast": "Isolated Rain Showers"
-      },
-      "hr_4": {
-        "startTime": "2024-07-19T00:00:00-04:00",
-        "endTime": "2024-07-19T01:00:00-04:00",
-        "temperature": 78,
-        "shortForecast": "Mostly Cloudy"
-      },
-      "hr_5": {
-        "startTime": "2024-07-19T01:00:00-04:00",
-        "endTime": "2024-07-19T02:00:00-04:00",
-        "temperature": 76,
-        "shortForecast": "Mostly Cloudy"
-      },
-      "hr_6": {
-        "startTime": "2024-07-19T02:00:00-04:00",
-        "endTime": "2024-07-19T03:00:00-04:00",
-        "temperature": 76,
-        "shortForecast": "Partly Cloudy"
-      }
-    },
-    "widget_forecast": {
-      "sunrise_sunset": {
-        "sunrise": "2024-07-18T09:58:50.252Z",
-        "sunset": "2024-07-19T00:32:11.561Z",
-        "dawn": "2024-07-18T09:27:59.460Z",
-        "dusk": "2024-07-19T01:03:02.352Z"
-      },
-      "uv_index": {
-        "uv": 0.0194,
-        "uv_max": 9.5313,
-        "uv_index": "GET INDEX FUNC"
-      },
-      "wind": {
-        "windChill": null,
-        "windDirection": 0,
-        "windSpeed": 12.964,
-        "windGust": 22.224
-      },
-      "humidity": {
-        "relativeHumidity": 55,
-        "dewpoint": 19.444444444444443
-      },
-      "pressure": {
-        "pressure": "TODO"
-      },
-      "now": {
-        "temperature": 82,
-        "apparentTemperature": 31.11111111111111,
-        "maxTemperature": 30.555555555555557,
-        "minTemperature": 22.22222222222222,
-        "shortForecast": "Mostly Cloudy"
-      }
-    },
-    "alert_forecast": null
-  }
+"socket": ["127.0.0.1", 23456],
+"type": "response",
+"service": "forecast",
+"data": {
+"daily_forecast": {
+"0": {
+"maxTemperature": 30.555555555555557,
+"minTemperature": 22.22222222222222,
+"name": "Tonight",
+"startTime": "2024-07-18T20:00:00-04:00",
+"endTime": "2024-07-19T06:00:00-04:00",
+"isDaytime": false,
+"temperature": 72,
+"rainProb": 20,
+"windSpeed": "3 to 8 mph",
+"windDirection": "N",
+"shortForecast": "Isolated Rain Showers then Mostly Cloudy"
+},
+"day_1": {
+"maxTemperature": 31.666666666666668,
+"minTemperature": 22.22222222222222,
+"name": "Friday",
+"startTime": "2024-07-19T06:00:00-04:00",
+"endTime": "2024-07-19T18:00:00-04:00",
+"isDaytime": true,
+"temperature": 89,
+"rainProb": null,
+"windSpeed": "3 to 9 mph",
+"windDirection": "NE",
+"shortForecast": "Mostly Sunny"
+},
+"day_2": {
+"maxTemperature": 30,
+"minTemperature": 21.666666666666668,
+"name": "Friday Night",
+"startTime": "2024-07-19T18:00:00-04:00",
+"endTime": "2024-07-20T06:00:00-04:00",
+"isDaytime": false,
+"temperature": 72,
+"rainProb": null,
+"windSpeed": "2 to 6 mph",
+"windDirection": "SE",
+"shortForecast": "Partly Cloudy"
+},
+"day_3": {
+"maxTemperature": 32.22222222222222,
+"minTemperature": 22.22222222222222,
+"name": "Saturday",
+"startTime": "2024-07-20T06:00:00-04:00",
+"endTime": "2024-07-20T18:00:00-04:00",
+"isDaytime": true,
+"temperature": 86,
+"rainProb": 40,
+"windSpeed": "2 to 8 mph",
+"windDirection": "S",
+"shortForecast": "Chance Showers And Thunderstorms"
+},
+"day_4": {
+"maxTemperature": 31.666666666666668,
+"minTemperature": 22.77777777777778,
+"name": "Saturday Night",
+"startTime": "2024-07-20T18:00:00-04:00",
+"endTime": "2024-07-21T06:00:00-04:00",
+"isDaytime": false,
+"temperature": 71,
+"rainProb": 40,
+"windSpeed": "2 to 7 mph",
+"windDirection": "W",
+"shortForecast": "Chance Showers And Thunderstorms"
+},
+"day_5": {
+"maxTemperature": 31.666666666666668,
+"minTemperature": 23.333333333333332,
+"name": "Sunday",
+"startTime": "2024-07-21T06:00:00-04:00",
+"endTime": "2024-07-21T18:00:00-04:00",
+"isDaytime": true,
+"temperature": 90,
+"rainProb": 30,
+"windSpeed": "5 mph",
+"windDirection": "W",
+"shortForecast": "Chance Showers And Thunderstorms"
+},
+"day_6": {
+"maxTemperature": 32.22222222222222,
+"minTemperature": 23.333333333333332,
+"name": "Sunday Night",
+"startTime": "2024-07-21T18:00:00-04:00",
+"endTime": "2024-07-22T06:00:00-04:00",
+"isDaytime": false,
+"temperature": 72,
+"rainProb": 30,
+"windSpeed": "5 mph",
+"windDirection": "S",
+"shortForecast": "Chance Showers And Thunderstorms"
+}
+},
+"hourly_forecast": {
+"hr_0": {
+"startTime": "2024-07-18T20:00:00-04:00",
+"endTime": "2024-07-18T21:00:00-04:00",
+"temperature": 82,
+"shortForecast": "Mostly Cloudy"
+},
+"hr_1": {
+"startTime": "2024-07-18T21:00:00-04:00",
+"endTime": "2024-07-18T22:00:00-04:00",
+"temperature": 81,
+"shortForecast": "Isolated Rain Showers"
+},
+"hr_2": {
+"startTime": "2024-07-18T22:00:00-04:00",
+"endTime": "2024-07-18T23:00:00-04:00",
+"temperature": 80,
+"shortForecast": "Isolated Rain Showers"
+},
+"hr_3": {
+"startTime": "2024-07-18T23:00:00-04:00",
+"endTime": "2024-07-19T00:00:00-04:00",
+"temperature": 79,
+"shortForecast": "Isolated Rain Showers"
+},
+"hr_4": {
+"startTime": "2024-07-19T00:00:00-04:00",
+"endTime": "2024-07-19T01:00:00-04:00",
+"temperature": 78,
+"shortForecast": "Mostly Cloudy"
+},
+"hr_5": {
+"startTime": "2024-07-19T01:00:00-04:00",
+"endTime": "2024-07-19T02:00:00-04:00",
+"temperature": 76,
+"shortForecast": "Mostly Cloudy"
+},
+"hr_6": {
+"startTime": "2024-07-19T02:00:00-04:00",
+"endTime": "2024-07-19T03:00:00-04:00",
+"temperature": 76,
+"shortForecast": "Partly Cloudy"
+}
+},
+"widget_forecast": {
+"sunrise_sunset": {
+"sunrise": "2024-07-18T09:58:50.252Z",
+"sunset": "2024-07-19T00:32:11.561Z",
+"dawn": "2024-07-18T09:27:59.460Z",
+"dusk": "2024-07-19T01:03:02.352Z"
+},
+"uv_index": {
+"uv": 0.0194,
+"uv_max": 9.5313,
+"uv_index": "GET INDEX FUNC"
+},
+"wind": {
+"windChill": null,
+"windDirection": 0,
+"windSpeed": 12.964,
+"windGust": 22.224
+},
+"humidity": {
+"relativeHumidity": 55,
+"dewpoint": 19.444444444444443
+},
+"pressure": {
+"pressure": "TODO"
+},
+"now": {
+"temperature": 82,
+"apparentTemperature": 31.11111111111111,
+"maxTemperature": 30.555555555555557,
+"minTemperature": 22.22222222222222,
+"shortForecast": "Mostly Cloudy"
+}
+},
+"alert_forecast": null
+}
 }
 
 

@@ -48,7 +48,7 @@ class FrontendManager:
             try:
                 message = self.inbound_queue[0]
                 self.inbound_queue.pop(0)
-                if message["service"] == "autocomplete":
+                if message["service"] == "forecast":
                     if message["type"] == "response":
                         socket_data = self.service_sockets['gui_manager']
                         message.update({"socket": [socket_data[0], socket_data[1]]})

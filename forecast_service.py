@@ -35,7 +35,8 @@ class ForecastController:
         self.last_update = None
         self.last_request = None
         self.outbound_queue = []
-        self.inbound_queue = [{"type": "request", "service": "forecast", "data": [38.8894, -77.0352]}]
+        self.inbound_queue = []
+        self.temp_unit = 'F'
 
     def run(self):
         """
@@ -80,20 +81,25 @@ class ForecastController:
         for _ in self.points_data_daily_dict:
             max_min_arr.append({"maxTemperature": _['maxTemperature'], "minTemperature": _['minTemperature']})
         outbound_daily_forecast_dict = {}
+        daily_arr = [self.forecast_daily_dict[0]]
+        daily_icon_arr = [self.points_data_daily_dict]
+        for daily_dict in self.forecast_daily_dict:
+            if daily_dict["isDaytime"] is True and daily_dict != daily_arr[0]:
+                daily_arr.append(daily_dict)
         for _ in range(7):
             daily_update = {
                 f"day_{_}": {
                      "maxTemperature": self.points_data_daily_dict[_]['maxTemperature'],
                      "minTemperature": self.points_data_daily_dict[_]['minTemperature'],
-                     "name": self.forecast_daily_dict[_]['name'],
-                     "startTime": self.forecast_daily_dict[_]['startTime'],
-                     "endTime": self.forecast_daily_dict[_]['endTime'],
-                     "isDaytime": self.forecast_daily_dict[_]['isDaytime'],
-                     "temperature": self.forecast_daily_dict[_]['temperature'],
-                     "rainProb": self.forecast_daily_dict[_]['rain_prob'],
-                     "windSpeed": self.forecast_daily_dict[_]['wind_speed'],
-                     "windDirection": self.forecast_daily_dict[_]['wind_dir'],
-                     "shortForecast": self.forecast_daily_dict[_]['short_forecast']}
+                     "name": daily_arr[_]['name'],
+                     "startTime": daily_arr[_]['startTime'],
+                     "endTime": daily_arr[_]['endTime'],
+                     "isDaytime": daily_arr[_]['isDaytime'],
+                     "temperature": daily_arr[_]['temperature'],
+                     "rainProb": daily_arr[_]['rain_prob'],
+                     "windSpeed": daily_arr[_]['wind_speed'],
+                     "windDirection": daily_arr[_]['wind_dir'],
+                     "shortForecast": daily_arr[_]['short_forecast'],}
             }
             outbound_daily_forecast_dict.update(daily_update)
         outbound_hourly_forecast_dict = {}
@@ -146,7 +152,6 @@ class ForecastController:
         self.outbound_queue.append(outbound_update_message)
         outbound_update_message = json.dumps(outbound_update_message)
         print(outbound_update_message)
-
 
     def get_general_weather_json(self, incoming_data):
         """
@@ -239,31 +244,32 @@ class ForecastController:
         "transportWindSpeeds": 20kmh, "transportWindDirection": 0deg, "hazards": null}
         {
 
+        https://github.com/weather-gov/api/discussions/453
         Would like to add air quality
         """
         fc_data = forecast_api_manager.get_json_from_url(self.forecast_gridpoints_url)
         daily_arr = []
         pd = fc_data["properties"]
-        for _ in range(7):
-            daily_dict = {
-                "maxTemperature": pd["maxTemperature"]["values"][_]["value"],
-                "minTemperature": pd["minTemperature"]["values"][_]["value"],
-                "weather": pd["weather"]["values"][_]
-                }
-            daily_arr.append(daily_dict)
-        widget_dict = {
-            "dewpoint": pd["dewpoint"]["values"][0]["value"],
-            "relativeHumidity": pd["relativeHumidity"]["values"][0]["value"],
-            "apparentTemperature": pd["apparentTemperature"]["values"][0]["value"],
-            "windChill": pd["windChill"]["values"][0]["value"],
-            "windDirection": pd["windDirection"]["values"][0]["value"],
-            "windSpeed": pd["windSpeed"]["values"][0]["value"],
-            "windGust": pd["windGust"]["values"][0]["value"],
-            "visibility": pd["visibility"]["values"][0]["value"],
-            "transportWindSpeed": pd["transportWindSpeed"]["values"][0]["value"],
-            "transportWindDirection": pd["transportWindDirection"]["values"][0]["value"],
-            "hazards": pd["hazards"]["values"][0]["value"]
-        }
+        if self.temp_unit == 'F':
+            for _ in range(7):
+                daily_dict = {
+                    "maxTemperature": int(pd["maxTemperature"]["values"][_]["value"] * 9/5 + 32),
+                    "minTemperature": int(pd["minTemperature"]["values"][_]["value"] * 9/5 + 32),
+                    "weather": pd["weather"]["values"][_]
+                    }
+                daily_arr.append(daily_dict)
+            widget_dict = {
+                "dewpoint": pd["dewpoint"]["values"][0]["value"] * 9/5 + 32,
+                "relativeHumidity": pd["relativeHumidity"]["values"][0]["value"],
+                "apparentTemperature": pd["apparentTemperature"]["values"][0]["value"] * 9/5 + 32,
+                "windChill": pd["windChill"]["values"][0]["value"],
+                "windDirection": pd["windDirection"]["values"][0]["value"],
+                "windSpeed": pd["windSpeed"]["values"][0]["value"],
+                "windGust": pd["windGust"]["values"][0]["value"],
+                "transportWindSpeed": pd["transportWindSpeed"]["values"][0]["value"],
+                "transportWindDirection": pd["transportWindDirection"]["values"][0]["value"],
+                "hazards": pd["hazards"]["values"][0]["value"]
+            }
         self.points_data_daily_dict = daily_arr
         self.points_data_widget_dict = widget_dict
 
