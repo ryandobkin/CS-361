@@ -111,12 +111,15 @@ class GuiMessageController:
         try:
             day = 0
             for daily_fc_top in daily_json:
-                print("day", day, daily_fc_top)
+                # print("day", day, daily_fc_top)
                 daily_fc = daily_json[daily_fc_top]
                 update_daily_date(day, daily_fc["name"])
-                update_daily_weather_condition_graphic(day)
                 condition_list = daily_fc["shortForecast"].split(' ')
-                update_daily_weather_condition_text(day, f"{condition_list[0]} {condition_list[1]}")
+                if len(condition_list) >= 2:
+                    update_daily_weather_condition_text(day, f"{condition_list[0]} {condition_list[1]}")
+                else:
+                    update_daily_weather_condition_text(day, f"{condition_list[0]}")
+                update_daily_weather_condition_graphic(day, condition_list)
                 update_daily_hilo(day, daily_fc["maxTemperature"], daily_fc["minTemperature"])
                 if daily_fc["rainProb"] is None:
                     daily_rain = 0
@@ -340,11 +343,22 @@ def update_daily_weather_condition_graphic(day=0, graphic='haze'):
     graphic : str
         The name of the graphic to be displayed
     """
+    if len(graphic) >= 2:
+        if graphic[1] == "And":
+            graphic.pop(1)
+        graphic_str = f"{graphic[0]} {graphic[1]}"
+    else:
+        graphic_str = f"{graphic[0]}"
+    #print("GRAPHIC_STR: ", graphic_str)
+    short_forecast_to_graphic_dict = {"Sunny": 'sunny', "Partly Cloudy": 'partly_cloudy', "Patchy Fog": 'fog',
+    "Mostly Sunny": 'sunny', "Mostly Cloudy": 'cloudy', "Scattered Showers": 'light_rain',
+    "Partly Sunny": 'partly_cloudy', "Showers"}
+    graphic_name = short_forecast_to_graphic_dict[graphic_str]
     daily_widget_name = 'condition_graphic_daily_' + str(day)
-    graphic_directory = './Images/' + graphic + '_graphic.png'
-    width, height = get_graphic_dimensions(graphic)
-    offsetx, offsety = get_graphic_offset(graphic, 100, 80)
-    #print(f"GRAPHIC | V1: {daily_widget_name} | V2: {graphic_directory} | V3 {width} | V4: {height} | V5: {offsetx} | V6: {offsety}")
+    graphic_directory = './Images/' + graphic_name + '_graphic.svg'
+    width, height = get_graphic_dimensions(graphic_name)
+    offsetx, offsety = get_graphic_offset(graphic_name, 100, 80)
+    print(f"GRAPHIC | V1: {daily_widget_name} | V2: {graphic_directory} | V3 {width} | V4: {height} | V5: {offsetx} | V6: {offsety}")
     eel.updateDailyWeatherConditionGraphic(daily_widget_name, graphic_directory, width, height, offsetx, offsety)
 
 

@@ -37,6 +37,7 @@ class ForecastController:
         self.outbound_queue = []
         self.inbound_queue = []
         self.temp_unit = 'F'
+        self.is_test = True
 
     def run(self):
         """
@@ -44,6 +45,10 @@ class ForecastController:
         """
         while True:
             try:
+                if self.is_test:
+                    self.is_test = False
+                    self.inbound_queue.append({"socket": ['127.0.0.2', 23457], "type": "request",
+                                               "service": "forecast", "data": [33.6041944, -117.8738554]})
                 if len(self.inbound_queue) > 0:
                     self.last_request = self.inbound_queue.pop(0)
                     if self.last_request["type"] == "request" and self.last_request["service"] == "forecast":
@@ -82,7 +87,6 @@ class ForecastController:
             max_min_arr.append({"maxTemperature": _['maxTemperature'], "minTemperature": _['minTemperature']})
         outbound_daily_forecast_dict = {}
         daily_arr = [self.forecast_daily_dict[0]]
-        daily_icon_arr = [self.points_data_daily_dict]
         for daily_dict in self.forecast_daily_dict:
             if daily_dict["isDaytime"] is True and daily_dict != daily_arr[0]:
                 daily_arr.append(daily_dict)
@@ -99,7 +103,8 @@ class ForecastController:
                      "rainProb": daily_arr[_]['rain_prob'],
                      "windSpeed": daily_arr[_]['wind_speed'],
                      "windDirection": daily_arr[_]['wind_dir'],
-                     "shortForecast": daily_arr[_]['short_forecast'],}
+                     "shortForecast": daily_arr[_]['short_forecast']
+                }
             }
             outbound_daily_forecast_dict.update(daily_update)
         outbound_hourly_forecast_dict = {}
@@ -250,12 +255,15 @@ class ForecastController:
         fc_data = forecast_api_manager.get_json_from_url(self.forecast_gridpoints_url)
         daily_arr = []
         pd = fc_data["properties"]
+        sky_dict = self.parse_sky_cover_condition(pd["skyCover"])
+        weather_dict = self.parse_weather(pd["weather"])
+        for _ in pd["weather"]["values"]:
+            break
         if self.temp_unit == 'F':
             for _ in range(7):
                 daily_dict = {
                     "maxTemperature": int(pd["maxTemperature"]["values"][_]["value"] * 9/5 + 32),
-                    "minTemperature": int(pd["minTemperature"]["values"][_]["value"] * 9/5 + 32),
-                    "weather": pd["weather"]["values"][_]
+                    "minTemperature": int(pd["minTemperature"]["values"][_]["value"] * 9/5 + 32)
                     }
                 daily_arr.append(daily_dict)
             widget_dict = {
@@ -272,6 +280,82 @@ class ForecastController:
             }
         self.points_data_daily_dict = daily_arr
         self.points_data_widget_dict = widget_dict
+
+    def parse_sky_cover_condition(self, dict):
+        """
+        When passed the skyCover dictionary of the points json, passed back relevant interpreted information.
+        "values": [
+            {
+              "validTime": "2024-07-22T14:00:00+00:00/PT1H",
+              "value": 100
+            }, {...}...]
+        """
+        skyCover_list = []
+        current_day_list = []
+        current_day = ""
+        for hrDict in dict["values"]:
+            sky_datetime, sky_offset = hrDict["validTime"].split('/')
+            sky_date, sky_time = sky_datetime.split('T')
+            sky_date, sky_time = sky_date.split('-'), sky_time.split('+')
+            hour_dict = {"year": sky_date[0], "month": sky_date[1], "day": sky_date[2], "hour": sky_time[0],
+                         "utc_offset": sky_time[1], "duration": sky_offset}
+            cloud_cover = hrDict["value"]
+
+            if 5 <= int(hour_dict["hour"][:2]) <= 20:
+                is_day = True
+            else:
+                is_day = False
+
+            if cloud_cover <= 12.5:
+                if is_day:
+                    condition = "sunny"
+                else:
+                    condition = "clear"
+            elif cloud_cover <= 37.5:
+                if is_day:
+                    condition = "mostly_sunny"
+                else:
+                    condition = "mostly_clear"
+            elif cloud_cover <= 62.5:
+                if is_day:
+                    condition = "partly_sunny"
+                else:
+                    condition = "partly_cloudy"
+            elif cloud_cover <= 87.5:
+                condition = "mostly_cloudy"
+            elif cloud_cover <= 100:
+                condition = "cloudy"
+            else:
+                condition = -1
+            hour_dict.update({"condition": condition})
+            if hour_dict["day"] == current_day:
+                current_day_list.append(hour_dict)
+            else:
+                current_day = hour_dict["day"]
+                skyCover_list.append(current_day_list)
+                current_day_list = [hour_dict]
+        skyCover_list.append(current_day_list)
+        skyCover_list.pop(0)
+        # print("skyCover_list: ", skyCover_list)
+        return skyCover_list
+
+    def parse_weather(self, weather_dict):
+        """
+        Parses the weather dict from the gridpoints json.
+        """
+        ret_weather_dict = {}
+        i = 0
+        for dDict in weather_dict["values"]:
+            datetime, duration = dDict["validTime"].split('/')
+            date, sky_time = datetime.split('T')
+            date, sky_time = date.split('-'), sky_time.split('+')
+            dict = {"year": date[0], "month": date[1], "day": date[2], "hour": sky_time[0],
+                    "utc_offset": sky_time[1], "duration": duration, "coverage": dDict["value"][0]["coverage"],
+                    "weather": dDict["value"][0]["weather"], "intensity": dDict["value"][0]["intensity"],
+                    "visibility": dDict["value"][0]["visibility"]["value"], "attributes": dDict["value"][0]["attributes"]}
+            ret_weather_dict.update({i: dict})
+            i += 1
+        return ret_weather_dict
 
     def parse_alert_forecast(self):
         """
