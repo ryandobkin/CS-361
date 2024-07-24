@@ -19,6 +19,7 @@ def request_weather_json_general(lat_lng):
     print(f"NWS API Request - coordinates: {lat_lng}\nurl: {url_query}")
     response = requests.get(url_query)
     response = response.json()
+    print(response)
     print("API REQUEST_WEATHER_JSON_GENERAL", response["properties"])
     return response
 

@@ -301,7 +301,7 @@ body {
   left: 38px;
   font-family: Inter;
   font-weight: Normal;
-  font-size: 26px;
+  font-size: 16px;
   opacity: 1;
   text-align: left;
 }
@@ -322,7 +322,7 @@ body {
   left: 6px;
   font-family: Inter;
   font-weight: Normal;
-  font-size: 15px;
+  font-size: 11px;
   opacity: 1;
   text-align: left;
 }
@@ -334,7 +334,7 @@ body {
   left: 6px;
   font-family: Inter;
   font-weight: Normal;
-  font-size: 13px;
+  font-size: 9px;
   opacity: 1;
   text-align: left;
 }

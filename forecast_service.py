@@ -6,6 +6,8 @@ import time
 import json
 import eel
 
+# Will use sample request and will not request from OpenUV API, using sample response instead
+IS_TEST = True
 
 class ForecastController:
     """
@@ -37,7 +39,8 @@ class ForecastController:
         self.outbound_queue = []
         self.inbound_queue = []
         self.temp_unit = 'F'
-        self.is_test = True
+        self.is_test = IS_TEST
+        self.disable_uv_api = False
 
     def run(self):
         """
@@ -47,18 +50,22 @@ class ForecastController:
             try:
                 if self.is_test:
                     self.is_test = False
+                    self.disable_uv_api = True
+                    self.test_cord_list = {"Newport": [36.6041944, -117.8738554], "Durham": [36.0763129, -78.71559]}
                     self.inbound_queue.append({"socket": ['127.0.0.2', 23457], "type": "request",
-                                               "service": "forecast", "data": [33.6041944, -117.8738554]})
+                                               "service": "forecast", "data": self.test_cord_list["Durham"]})
                 if len(self.inbound_queue) > 0:
                     self.last_request = self.inbound_queue.pop(0)
                     if self.last_request["type"] == "request" and self.last_request["service"] == "forecast":
                         self.get_general_weather_json(self.last_request)
                         self.get_general_forecast_data(self.points_json)
+                        #self.get_general_hourly_forecast_data(self.)
                         self.get_openuv_data()
                         self.parse_daily_forecast()
                         self.parse_gridpoints_forecast()
                         self.parse_openuv_data()
                         self.parse_hourly_forecast()
+                        self.parse_alert_forecast()
                         self.update_gui()
                         #self.print_all()
                 time.sleep(0.5)
@@ -126,8 +133,7 @@ class ForecastController:
                 "dusk": self.open_uv_data['dusk']},
             "uv_index": {
                 "uv": self.open_uv_data['uv'],
-                "uv_max": self.open_uv_data['uv_max'],
-                "uv_index": 'GET INDEX FUNC'
+                "uv_max": self.open_uv_data['uv_max']
             },
             "wind": {
                 "windChill": self.points_data_widget_dict['windChill'],
@@ -138,7 +144,7 @@ class ForecastController:
             "humidity": {
                 "relativeHumidity": self.points_data_widget_dict['relativeHumidity'],
                 "dewpoint": self.points_data_widget_dict['dewpoint']},
-            "pressure": {"pressure": "TODO"},
+            "pressure": {},
             "now": {
                 "temperature": self.forecast_hourly_dict[0]['temperature'],
                 "apparentTemperature": self.points_data_widget_dict['apparentTemperature'],
@@ -181,7 +187,7 @@ class ForecastController:
         self.radar_station = incoming_json["properties"]["radarStation"]
         zone_id = forecast_api_manager.get_json_from_url(incoming_json["properties"]["forecastZone"])
         self.zone_id = zone_id["properties"]["id"]
-        self.active_alert_url = f"api.weather.gov/alerts/active/zone/{self.zone_id}"
+        self.active_alert_url = f"https://api.weather.gov/alerts/active/zone/{self.zone_id}"
 
     def parse_daily_forecast(self):
         """
@@ -255,8 +261,8 @@ class ForecastController:
         fc_data = forecast_api_manager.get_json_from_url(self.forecast_gridpoints_url)
         daily_arr = []
         pd = fc_data["properties"]
-        sky_dict = self.parse_sky_cover_condition(pd["skyCover"])
-        weather_dict = self.parse_weather(pd["weather"])
+        #sky_dict = self.parse_sky_cover_condition(pd["skyCover"])
+        #weather_dict = self.parse_weather(pd["weather"])
         for _ in pd["weather"]["values"]:
             break
         if self.temp_unit == 'F':
@@ -275,8 +281,7 @@ class ForecastController:
                 "windSpeed": pd["windSpeed"]["values"][0]["value"],
                 "windGust": pd["windGust"]["values"][0]["value"],
                 "transportWindSpeed": pd["transportWindSpeed"]["values"][0]["value"],
-                "transportWindDirection": pd["transportWindDirection"]["values"][0]["value"],
-                "hazards": pd["hazards"]["values"][0]["value"]
+                "transportWindDirection": pd["transportWindDirection"]["values"][0]["value"]
             }
         self.points_data_daily_dict = daily_arr
         self.points_data_widget_dict = widget_dict
@@ -364,14 +369,15 @@ class ForecastController:
 
         Updates self.active_alert_dict with all relevant data:
         {"areaDesc": "San Diego Coastal Areas; Orange County Coastal", "effective": "2024-07-18T13:34:00-07:00",
-        "ends": "2024-07-18T21:00:00-07:00", "status": "Actual", "severity": "Moderate", "certainty": "Likely",
+        "expires": "2024-07-18T21:00:00-07:00", "status": "Actual", "severity": "Moderate", "certainty": "Likely",
         "urgency": "Expected", "event": "Beach Hazards Statement", "senderName": "NWS San Diego CA",
         "headline": "brief description", "description": "extensive description", "instruction": "remain out of water",
         "response": "Avoid"}
         """
         fc_data = forecast_api_manager.get_json_from_url(self.active_alert_url)
-        pd = fc_data["features"]["properties"]
-        alert_data = {"areaDesc": pd["areaDesc"], "effective": pd["effective"], "ends": pd["ends"],
+        print(self.active_alert_url)
+        pd = fc_data["features"][0]["properties"]
+        alert_data = {"areaDesc": pd["areaDesc"], "effective": pd["effective"], "expires": pd["expires"],
                       "status": pd["status"], "severity": pd["severity"], "certainty": pd["certainty"],
                       "urgency": pd["certainty"], "event": pd["event"], "senderName": pd["senderName"],
                       "headline": pd["headline"], "description": pd["description"], "instruction": pd["instruction"],
@@ -406,7 +412,12 @@ class ForecastController:
         Gets the relevant json from OpenUV.io API.
         https://www.openuv.io/dashboard
         """
-        response_json = forecast_api_manager.get_openuv_json(self.lng_lat)
+        if self.disable_uv_api:
+            f = open('openuv_example.json')
+            response_json = json.load(f)
+            f.close()
+        else:
+            response_json = forecast_api_manager.get_openuv_json(self.lng_lat)
         self.open_uv_json = response_json
 
 

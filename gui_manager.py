@@ -4,6 +4,7 @@ from outbound_message_manager import OutboundMessageManager
 from gui_api_manager import APIManager
 import threading
 import time
+import json
 
 # Globals
 # NO LONGER ACCURATE WITH .SVGs
@@ -11,6 +12,8 @@ graphic_dimensions_list = {"sunny": (55, 55), "partly_cloudy": (71, 60), "haze":
  "fog": (71, 61), "windy": (63, 40), "cloudy": (71, 44), "thunderstorm_rain": (71, 65), "light_rain": (71, 65),
  "heavy_rain": (71, 65), "drizzle_rain": (71, 58), "hail_rain": (71, 66), "snow": (61, 66)}
 query_queue = [0]
+IS_TEST = True
+
 
 class GuiMessageController:
     """
@@ -29,6 +32,7 @@ class GuiMessageController:
         self.api_response_list = []
         self.current_search_term = ""
         self.start_time = 0
+        self.is_test = IS_TEST
 
     def main(self):
         """
@@ -44,6 +48,9 @@ class GuiMessageController:
         """
         while True:
             try:
+                if self.is_test:
+                    self.is_test = False
+                    self.inbound_queue.append(json.load(open('gui_forecast_example.json')))
                 if len(self.inbound_queue) > 0:
                     message = self.inbound_queue.pop(0)
                     print(f"Processing Incoming Message: {message}")
@@ -102,7 +109,10 @@ class GuiMessageController:
             daily_forecast = forecast["daily_forecast"]
             hourly_forecast = forecast["hourly_forecast"]
             widget_forecast = forecast["widget_forecast"]
+            alert_forecast = forecast["alert_forecast"]
             self.update_daily_forecasts(daily_forecast)
+            self.update_widget_forecasts(widget_forecast)
+            self.update_alert_forecast(alert_forecast)
         except KeyboardInterrupt as e:
             print("UpdateForecast Error:", e)
 
@@ -130,6 +140,7 @@ class GuiMessageController:
                 if day == 6:
                     break
                 day += 1
+            print("UPDATE COMPLETE")
         except KeyboardInterrupt as e:
             print("UpdateDailyForecasts Error:", e)
 
@@ -138,6 +149,49 @@ class GuiMessageController:
 
     def update_widget_forecasts(self, widget_forecast):
         pass
+
+    def update_alert_forecast(self, alert_forecast):
+        """
+        Updates the alert widget with incoming information when called.
+        Will probably have a microservice controller eventually, for now controlled by forecast_service.
+        """
+        print("active alerts: ", alert_forecast)
+        af = alert_forecast
+        if alert_forecast:
+            time_eff, time_exp = self.to_12hr_offset_time(alert_forecast['effective'], alert_forecast['expires'])
+            effective_times = f"Effective {time_eff} through {time_exp}"
+            alert_body_full = f"{effective_times}\n{af['headline']}\n"
+            update_alert(True, af["event"], alert_body_full, af["senderName"])
+
+        else:
+            pass
+            # make alert invisible
+
+    def to_12hr_offset_time(self, time1, time2):
+        """
+        Translates two given 12hr y-m-dTh:m:s-utc-# to mon day 12hr time am/pm utc-# offset (PST, EST)
+        TODO: Convert times to current time zone, works for now though
+        """
+        month_dict = {"01": "January", "02": "February", "03": "March", "04": "April", "05": "May", "06": "June",
+                  "07": "July", "08": "August", "09": "September", "10": "October", "11": "November", "12": "December"}
+        offset_dict = {"00": "UTC-0", "-01": "UTC-1", "-02": "UTC-2", "-03": "UTC-3", "-04": "UTC-4", "-05": "ET", "-06": "CT",
+                       "-07": "MT", "-08": "PT", "-09": "AKST", "-10": "HT"}
+        return_arr = []
+        for ct in [time1, time2]:
+            ct = ct.split('T')
+            currdate = ct[0].split('-')
+            date_str = f"{month_dict[currdate[1]]} {currdate[2]}"
+            currtime = ct[1].split(':')
+            if int(currtime[0]) > 12:
+                time_str = f"{int(currtime[0]) - 12}:{currtime[1]} PM"
+            else:
+                time_str = f"{int(currtime[0]) - 12}:{currtime[1]} AM"
+            offset = currtime[3]
+            time_zone_str = offset_dict[offset]
+            return_arr.append(f"{date_str} {time_str} {time_zone_str}")
+        return return_arr
+
+
 
 
 def run():
@@ -332,7 +386,7 @@ def update_daily_weather_condition_text(day=0, weather_condition='Default'):
 
 # DAILY WIDGET | CONDITION GRAPHIC
 @eel.expose
-def update_daily_weather_condition_graphic(day=0, graphic='haze'):
+def update_daily_weather_condition_graphic(day=0, graphic='sunny'):
     """
     Updates the daily forecast weather condition graphic
 
@@ -343,16 +397,28 @@ def update_daily_weather_condition_graphic(day=0, graphic='haze'):
     graphic : str
         The name of the graphic to be displayed
     """
-    if len(graphic) >= 2:
-        if graphic[1] == "And":
-            graphic.pop(1)
-        graphic_str = f"{graphic[0]} {graphic[1]}"
+    if type(graphic) != str:
+        if len(graphic) == 2:
+            if graphic[1] == 'And':
+                graphic_str = f"{graphic[0]}"
+            else:
+                graphic_str = f"{graphic[0]} {graphic[1]}"
+        elif len(graphic) > 2:
+            if graphic[1] == 'And':
+                graphic_str = f"{graphic[0]} {graphic[2]}"
+            else:
+                graphic_str = f"{graphic[0]} {graphic[1]}"
+        else:
+            graphic_str = f"{graphic[0]}"
     else:
-        graphic_str = f"{graphic[0]}"
+        graphic_str = graphic
+    print(f"GRAPHIC ORIGINAL - {graphic} || GRAPHIC UPDATED - {graphic_str}", )
     #print("GRAPHIC_STR: ", graphic_str)
-    short_forecast_to_graphic_dict = {"Sunny": 'sunny', "Partly Cloudy": 'partly_cloudy', "Patchy Fog": 'fog',
-    "Mostly Sunny": 'sunny', "Mostly Cloudy": 'cloudy', "Scattered Showers": 'light_rain',
-    "Partly Sunny": 'partly_cloudy', "Showers"}
+    short_forecast_to_graphic_dict = {
+        "Sunny": 'sunny', "Partly Sunny": 'partly_cloudy', "Mostly Sunny": 'sunny',
+        "Cloudy": 'cloudy', "Partly Cloudy": 'partly_cloudy', "Mostly Cloudy": 'cloudy',
+        "Patchy Fog": 'fog', "Scattered Showers": 'light_rain', "Showers": 'light_rain',
+        "Isolated Showers": 'light_rain', "Showers Thunderstorms": 'thunderstorm_rain', "Chance Showers": 'light_rain'}
     graphic_name = short_forecast_to_graphic_dict[graphic_str]
     daily_widget_name = 'condition_graphic_daily_' + str(day)
     graphic_directory = './Images/' + graphic_name + '_graphic.svg'
