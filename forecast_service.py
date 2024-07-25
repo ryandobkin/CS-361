@@ -200,6 +200,8 @@ class ForecastController:
         """
         fc_data = forecast_api_manager.get_json_from_url(self.forecast_daily_url)
         daily_data_arr = []
+        if fc_data["properties"]:
+            print("AAA")
         for _ in range(14):
             prop_data = fc_data["properties"]["periods"][_]
             daily_dict = {
@@ -379,7 +381,7 @@ class ForecastController:
         pd = fc_data["features"][0]["properties"]
         alert_data = {"areaDesc": pd["areaDesc"], "effective": pd["effective"], "expires": pd["expires"],
                       "status": pd["status"], "severity": pd["severity"], "certainty": pd["certainty"],
-                      "urgency": pd["certainty"], "event": pd["event"], "senderName": pd["senderName"],
+                      "urgency": pd["urgency"], "event": pd["event"], "senderName": pd["senderName"],
                       "headline": pd["headline"], "description": pd["description"], "instruction": pd["instruction"],
                       "response": pd["response"]}
         self.active_alert_dict = alert_data

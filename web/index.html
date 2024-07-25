@@ -9,9 +9,21 @@
     </head>
 <body>
     <div class="home_bg"></div>
+    <div class="home_border">
+        <span id="border_tl1"></span>
+        <span id="border_tl2"></span>
+        <span id="border_tr1"></span>
+        <span id="border_tr2"></span>
+        <span id="border_bl1"></span>
+        <span id="border_bl2"></span>
+        <span id="border_br1"></span>
+        <span id="border_br2"></span>
+    </div>
+    <div class="widget_background">
+        <span id="bg_background"></span>
+    </div>
     <div class="widget_search">
         <span id="search_bg"></span>
-        <span id="search_blink_bg"></span>
         <input id="input_search" type="text" placeholder="Search for a City or Zip Code"
          onfocus="this.placeholder = ''" onblur="this.placeholder = 'Search for a City or Zip Code'" />
         <div id="dropdown_search">
@@ -25,18 +37,10 @@
     </div>
     <div id="location_text">Los Angeles, CA</div>
     <div class="daily_group">
-        <div class="group_bg_daily"></div>
         <div class="widget_daily_6">
             <div class="bg_daily"></div>
-            <div class="wind_daily">
-                <span id="wind_icon_daily" class="material-symbols-outlined">air</span>
-                <span id="wind_value_daily_6" class="wind_value_daily">SW 8 mph</span>
-            </div>
-            <div class="rain_daily">
-                <span id="rain_icon_daily" class="material-symbols-outlined">water_drop</span>
-                <span id="rain_value_daily_6" class="rain_value_daily">15%</span>
-            </div>
-            <span id="hilo_daily_6" class="hilo_daily">82&deg;/62&deg;</span>
+            <span id="hi_daily_6" class="hi_daily">82&deg;</span>
+            <span id="lo_daily_6" class="lo_daily">62&deg;</span>
             <span id="condition_text_daily_6" class="condition_text_daily">Partly Cloudy</span>
             <div class="condition_graphic_container_daily">
                 <img id="condition_graphic_daily_6" class="condition_graphic_daily" src="./Images/sunny_graphic.svg" width="55" height="55"/>
@@ -45,15 +49,8 @@
         </div>
         <div class="widget_daily_5">
             <div class="bg_daily"></div>
-            <div class="wind_daily">
-                <span id="wind_icon_daily" class="material-symbols-outlined">air</span>
-                <span id="wind_value_daily_5" class="wind_value_daily">SW 8 mph</span>
-            </div>
-            <div class="rain_daily">
-                <span id="rain_icon_daily" class="material-symbols-outlined">water_drop</span>
-                <span id="rain_value_daily_5" class="rain_value_daily">15%</span>
-            </div>
-            <span id="hilo_daily_5" class="hilo_daily">82&deg;/62&deg;</span>
+            <span id="hi_daily_5" class="hi_daily">82&deg;</span>
+            <span id="lo_daily_5" class="lo_daily">62&deg;</span>
             <span id="condition_text_daily_5" class="condition_text_daily">Partly Cloudy</span>
             <div class="condition_graphic_container_daily">
                 <img id="condition_graphic_daily_5" class="condition_graphic_daily" src="./Images/sunny_graphic.svg" width="55" height="55"/>
@@ -61,15 +58,8 @@
             <span id="date_daily_5" class="date_daily">Today</span></div>
         <div class="widget_daily_4">
             <div class="bg_daily"></div>
-            <div class="wind_daily">
-                <span id="wind_icon_daily" class="material-symbols-outlined">air</span>
-                <span id="wind_value_daily_4" class="wind_value_daily">SW 8 mph</span>
-            </div>
-            <div class="rain_daily">
-                <span id="rain_icon_daily" class="material-symbols-outlined">water_drop</span>
-                <span id="rain_value_daily_4" class="rain_value_daily">15%</span>
-            </div>
-            <span id="hilo_daily_4" class="hilo_daily">82&deg;/62&deg;</span>
+            <span id="hi_daily_4" class="hi_daily">82&deg;</span>
+            <span id="lo_daily_4" class="lo_daily">62&deg;</span>
             <span id="condition_text_daily_4" class="condition_text_daily">Partly Cloudy</span>
             <div class="condition_graphic_container_daily">
                 <img id="condition_graphic_daily_4" class="condition_graphic_daily" src="./Images/sunny_graphic.svg" width="55" height="55"/>
@@ -77,15 +67,8 @@
             <span id="date_daily_4" class="date_daily">Today</span></div>
         <div class="widget_daily_3">
             <div class="bg_daily"></div>
-            <div class="wind_daily">
-                <span id="wind_icon_daily" class="material-symbols-outlined">air</span>
-                <span id="wind_value_daily_3" class="wind_value_daily">SW 8 mph</span>
-            </div>
-            <div class="rain_daily">
-                <span id="rain_icon_daily" class="material-symbols-outlined">water_drop</span>
-                <span id="rain_value_daily_3" class="rain_value_daily">15%</span>
-            </div>
-            <span id="hilo_daily_3" class="hilo_daily">82&deg;/62&deg;</span>
+            <span id="hi_daily_3" class="hi_daily">82&deg;</span>
+            <span id="lo_daily_3" class="lo_daily">62&deg;</span>
             <span id="condition_text_daily_3" class="condition_text_daily">Partly Cloudy</span>
             <div class="condition_graphic_container_daily">
                 <img id="condition_graphic_daily_3" class="condition_graphic_daily" src="./Images/sunny_graphic.svg" width="55" height="55"/>
@@ -93,15 +76,8 @@
             <span id="date_daily_3" class="date_daily">Today</span></div>
         <div class="widget_daily_2">
             <div class="bg_daily"></div>
-            <div class="wind_daily">
-                <span id="wind_icon_daily" class="material-symbols-outlined">air</span>
-                <span id="wind_value_daily_2" class="wind_value_daily">SW 8 mph</span>
-            </div>
-            <div class="rain_daily">
-                <span id="rain_icon_daily" class="material-symbols-outlined">water_drop</span>
-                <span id="rain_value_daily_2" class="rain_value_daily">15%</span>
-            </div>
-            <span id="hilo_daily_2" class="hilo_daily">82&deg;/62&deg;</span>
+            <span id="hi_daily_2" class="hi_daily">82&deg;</span>
+            <span id="lo_daily_2" class="lo_daily">62&deg;</span>
             <span id="condition_text_daily_2" class="condition_text_daily">Partly Cloudy</span>
             <div class="condition_graphic_container_daily">
                 <img id="condition_graphic_daily_2" class="condition_graphic_daily" src="./Images/sunny_graphic.svg" width="55" height="55"/>
@@ -109,15 +85,8 @@
             <span id="date_daily_2" class="date_daily">Today</span></div>
         <div class="widget_daily_1">
             <div class="bg_daily"></div>
-            <div class="wind_daily">
-                <span id="wind_icon_daily" class="material-symbols-outlined">air</span>
-                <span id="wind_value_daily_1" class="wind_value_daily">SW 8 mph</span>
-            </div>
-            <div class="rain_daily">
-                <span id="rain_icon_daily" class="material-symbols-outlined">water_drop</span>
-                <span id="rain_value_daily_1" class="rain_value_daily">15%</span>
-            </div>
-            <span id="hilo_daily_1" class="hilo_daily">82&deg;/62&deg;</span>
+            <span id="hi_daily_1" class="hi_daily">82&deg;</span>
+            <span id="lo_daily_1" class="lo_daily">62&deg;</span>
             <span id="condition_text_daily_1" class="condition_text_daily">Partly Cloudy</span>
             <div class="condition_graphic_container_daily">
                 <img id="condition_graphic_daily_1" class="condition_graphic_daily" src="./Images/sunny_graphic.svg" width="55" height="55"/>
@@ -125,15 +94,8 @@
             <span id="date_daily_1" class="date_daily">Today</span></div>
         <div class="widget_daily_0">
             <div class="bg_daily"></div>
-            <div class="wind_daily">
-                <span id="wind_icon_daily" class="material-symbols-outlined">air</span>
-                <span id="wind_value_daily_0" class="wind_value_daily">SW 8 mph</span>
-            </div>
-            <div class="rain_daily">
-                <span id="rain_icon_daily" class="material-symbols-outlined">water_drop</span>
-                <span id="rain_value_daily_0" class="rain_value_daily">15%</span>
-            </div>
-            <span id="hilo_daily_0" class="hilo_daily">82&deg;/62&deg;</span>
+            <span id="hi_daily_0" class="hi_daily">82&deg;</span>
+            <span id="lo_daily_0" class="lo_daily">62&deg;</span>
             <span id="condition_text_daily_0" class="condition_text_daily">Partly Cloudy</span>
             <div class="condition_graphic_container_daily">
                 <img id="condition_graphic_daily_0" class="condition_graphic_daily" src="./Images/sunny_graphic.svg" width="55" height="55"/>
@@ -190,14 +152,6 @@
             </div>
             <span id="time_hourly_1" class="time_hourly">Now</span>
         </div>
-        <div class="widget_hourly_0">
-            <div class="bg_hourly"></div>
-            <span id="temp_hourly_0" class="temp_hourly">91&deg;</span>
-            <div class="condition_graphic_container_hourly">
-                <img id="condition_graphic_hourly_0" class="condition_graphic_hourly" src="./Images/partly_cloudy_graphic.svg" height="55" width="70"/>
-            </div>
-            <span id="time_hourly_0" class="time_hourly">Now</span>
-        </div>
     </div>
     <div class="widget_alert">
         <div id="bg_alert"></div>
@@ -206,8 +160,7 @@
         <span id="body_alert">High Wind Warning until 5:00 PM, Monday, October 13.</span>
         <span id="source_alert">National Weather Service - Orange County</span>
     </div>
-    <div class="widget_nav">
-        <div class="menu_icon"></div>
+    <div class="widget_daily_bar">
         <div class="nav_bar"></div>
     </div>
     <div class="widget_pressure">
@@ -272,9 +225,9 @@
     </div>
     <div class="widget_now">
         <div class="bg_now"></div>
-        <span id="feelslike_now">Feels like 80&deg;</span>
+        <span id="feelslike_now">Feels like 80&deg; &#8226;</span>
         <span id="condition_text_now">Partly Cloudy</span>
-        <span id="hilo_now">High: 82 Low: 64</span>
+        <span id="hilo_now">High: 82 &#8226; Low: 64</span>
         <span id="temp_now">80&deg;</span>
         <span id="title_now">Now</span>
         <div id="graphic_container_now">

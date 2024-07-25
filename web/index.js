@@ -73,11 +73,18 @@ function updateDailyWind(daily_widget_name, new_wind_value) {
     document.getElementById(daily_widget_name).innerText = new_wind_value;
 }
 
-// Updates Daily Hi and Lo display
-eel.expose(updateDailyHiLo);
-function updateDailyHiLo(daily_widget_name, hilo) {
-    eel.print_in_python("updateDailyHiLo");
-    document.getElementById(daily_widget_name).innerText = hilo;
+// Updates Daily Hi display
+eel.expose(updateDailyHi);
+function updateDailyHi(daily_widget_name, hi) {
+    eel.print_in_python("updateDailyHi");
+    document.getElementById(daily_widget_name).innerText = hi;
+}
+
+// Updates Daily Lo display
+eel.expose(updateDailyLo);
+function updateDailyLo(daily_widget_name, lo) {
+    eel.print_in_python("updateDailyLo");
+    document.getElementById(daily_widget_name).innerText = lo;
 }
 
 // Updates Daily Weather Condition Text

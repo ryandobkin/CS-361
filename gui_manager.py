@@ -131,12 +131,6 @@ class GuiMessageController:
                     update_daily_weather_condition_text(day, f"{condition_list[0]}")
                 update_daily_weather_condition_graphic(day, condition_list)
                 update_daily_hilo(day, daily_fc["maxTemperature"], daily_fc["minTemperature"])
-                if daily_fc["rainProb"] is None:
-                    daily_rain = 0
-                else:
-                    daily_rain = daily_fc["rainProb"]
-                update_daily_rain_percent(day, daily_rain)
-                update_daily_wind(day, daily_fc["windDirection"], daily_fc["windSpeed"])
                 if day == 6:
                     break
                 day += 1
@@ -216,7 +210,8 @@ def update_location(new_location=None):
     new_location : str
         The new location to display in the location banner.
     """
-    eel.updateLocationDisplay(new_location)
+    pass
+    # eel.updateLocationDisplay(new_location)
 
 
 # SEARCH WIDGET QUERY
@@ -360,10 +355,12 @@ def update_daily_hilo(day=0, hi=0, lo=0):
     Lo : int
         The new Lo value to be put into the display.
     """
-    hilo = f"{hi}{chr(176)}/{lo}{chr(176)}"
-    daily_widget_name = 'hilo_daily_' + str(day)
-    #print(f"HILO | Value 1: {daily_widget_name} | Value 2: {hilo}")
-    eel.updateDailyHiLo(daily_widget_name, hilo)
+    hi = f"{hi} + {chr(176)}"
+    lo = f"{lo} + {chr(176)}"
+    daily_hi_widget_name = 'hi_daily_' + str(day)
+    daily_lo_widget_name = 'lo_daily_' + str(day)
+    eel.updateDailyHi(daily_hi_widget_name, hi)
+    eel.updateDailyLo(daily_lo_widget_name, lo)
 
 
 # DAILY WIDGET | CONDITION TEXT

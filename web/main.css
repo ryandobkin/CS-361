@@ -21,11 +21,91 @@ body {
   width: 1280px;
   height: 720px;
   background: rgba(13,13,13,1);
-  opacity: 1;
+  opacity: .2;
   position: absolute;
   top: 0px;
   left: 0px;
   overflow: hidden;
+}
+.home_border {
+  opacity: 1;
+  position: absolute;
+  top: 0px;
+  left: 335px;
+  width: 945px;
+  height: 720px;
+  border: 4px solid #17182A;
+  z-index: 1;
+    border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+/* I know this is not efficient, I figure the work to move to react
+ or figure out a competent way to do this is more effort than its worth */
+#border_tl1 {
+  background: #17182A;
+  width: 4px;
+  height: 12px;
+  top: -4px;
+  left: -4px;
+  position: absolute;
+}
+#border_tl2 {
+  background: #17182A;
+  width: 12px;
+  height: 4px;
+  top: -4px;
+  left: -4px;
+  position: absolute;
+}
+#border_tr1 {
+  background: #17182A;
+  width: 4px;
+  height: 12px;
+  top: -4px;
+  left: 937px;
+  position: absolute;
+}
+#border_tr2 {
+  background: #17182A;
+  width: 12px;
+  height: 4px;
+  top: -6px;
+  left: 929px;
+  position: absolute;
+}
+#border_bl1 {
+  background: #17182A;
+  width: 4px;
+  height: 12px;
+  top: 704px;
+  left: -6px;
+  position: absolute;
+}
+#border_bl2 {
+  background: #17182A;
+  width: 12px;
+  height: 4px;
+  top: 712px;
+  left: -4px;
+  position: absolute;
+}
+#border_br1 {
+  background: #17182A;
+  width: 4px;
+  height: 12px;
+  top: 704px;
+  left: 937px;
+  position: absolute;
+}
+#border_br2 {
+  background: #17182A;
+  width: 12px;
+  height: 4px;
+  top: 712px;
+  left: 925px;
+  position: absolute;
 }
 .material-symbols-outlined {
   font-variation-settings:
@@ -38,105 +118,92 @@ body {
 /* DAILY FORECAST WIDGET */
 .daily_group {
   width: 100%;
-  height: 259px;
+  height: 720px;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
   opacity: 1;
-  position: absolute;
-  top: 453px;
-  left: 53px;
-  overflow: hidden;
-}
-.group_bg_daily {
-  width: 1219px;
-  height: 259px;
-  background: rgba(0,86,215,1);
-  opacity: 0.4;
   position: absolute;
   top: 0px;
   left: 0px;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
   overflow: hidden;
+  z-index: 1;
 }
 .widget_daily_6 {
-  width: 165px;
-  height: 243px;
+  width: 319px;
+  height: 90px;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
   opacity: 1;
   position: absolute;
-  top: 8px;
-  left: 1046px;
+  top: 596px;
+  left: 8px;
   overflow: hidden;
 }
 .widget_daily_5 {
-  width: 165px;
-  height: 243px;
+  width: 319px;
+  height: 90px;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
   opacity: 1;
   position: absolute;
-  top: 8px;
-  left: 873px;
+  top: 498px;
+  left: 8px;
   overflow: hidden;
 }
 .widget_daily_4 {
-  width: 165px;
-  height: 243px;
+  width: 319px;
+  height: 90px;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
   opacity: 1;
   position: absolute;
-  top: 8px;
-  left: 700px;
+  top: 400px;
+  left: 8px;
   overflow: hidden;
 }
 .widget_daily_3 {
-  width: 165px;
-  height: 243px;
+  width: 319px;
+  height: 90px;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
   opacity: 1;
   position: absolute;
-  top: 8px;
-  left: 527px;
+  top: 302px;
+  left: 8px;
   overflow: hidden;
 }
 .widget_daily_2 {
-  width: 165px;
-  height: 243px;
+  width: 319px;
+  height: 90px;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
   opacity: 1;
   position: absolute;
-  top: 8px;
-  left: 354px;
+  top: 204px;
+  left: 8px;
   overflow: hidden;
 }
 .widget_daily_1 {
-  width: 165px;
-  height: 243px;
+  width: 319px;
+  height: 90px;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
   opacity: 1;
   position: absolute;
-  top: 8px;
-  left: 181px;
+  top: 106px;
+  left: 8px;
   overflow: hidden;
 }
 .widget_daily_0 {
-  width: 165px;
-  height: 243px;
+  width: 319px;
+  height: 90px;
   opacity: 1;
   position: absolute;
   top: 8px;
@@ -144,84 +211,38 @@ body {
   overflow: hidden;
 }
 .bg_daily {
-  width: 165px;
-  height: 243px;
-  background: rgba(217,217,217,0.05999999865889549);
-  opacity: 1;
+  width: 319px;
+  height: 90px;
+  opacity: .05;
+  background-color: white;
   position: absolute;
   top: 0px;
   left: 0px;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-  overflow: hidden;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
 }
-.wind_daily {
-  width: 140px;
-  height: 30px;
-  opacity: 1;
-  position: absolute;
-  top: 205px;
-  left: 10px;
-  overflow: hidden;
-}
-.wind_value_daily {
-  width: 110px;
-  color: rgba(255,255,255,1);
-  position: absolute;
-  top: 3.5px;
-  left: 27px;
-  font-family: Inter;
-  font-weight: Normal;
-  font-size: 14px;
-  opacity: 1;
-  text-align: left;
-}
-#wind_icon_daily {
-  width: 14px;
-  height: 12px;
-  opacity: 1;
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  color: white;
-}
-.rain_daily {
-  width: 60px;
-  height: 30px;
-  opacity: 1;
-  position: absolute;
-  top: 175px;
-  left: 10px;
-}
-#rain_icon_daily {
-  opacity: 1;
-  position: absolute;
-  height: 20px;
-  width: 20px;
-  left: 0px;
-  top: 3px;
-  color: lightseagreen;
-}
-.rain_value_daily {
-  width: 24px;
-  color: rgba(255,255,255,1);
-  position: absolute;
-  top: 6px;
-  left: 27px;
-  font-family: Inter;
-  font-weight: Normal;
-  font-size: 14px;
-  opacity: 1;
-  text-align: center;
-}
-.hilo_daily {
+.hi_daily {
+  height: 25px;
   width: 86px;
   color: rgba(255,255,255,1);
   position: absolute;
-  top: 145px;
-  left: 41px;
+  top: 20px;
+  left: 230px;
+  font-family: Inter;
+  font-weight: Normal;
+  font-size: 21px;
+  opacity: 1;
+  text-align: center;
+}
+.lo_daily {
+  height: 25px;
+  width: 86px;
+  color: #CECECE;
+  position: absolute;
+  top: 45px;
+  left: 230px;
   font-family: Inter;
   font-weight: Normal;
   font-size: 21px;
@@ -230,39 +251,59 @@ body {
 }
 .condition_text_daily {
   width: 165px;
-  color: rgba(255,255,255,1);
+  color: #CECECE;
   position: absolute;
-  top: 117px;
-  left: 0px;
+  top: 45px;
+  left: 80px;
   font-family: Inter;
   font-weight: Normal;
-  font-size: 19px;
+  font-size: 18px;
   opacity: 1;
   text-align: center;
 }
 .condition_graphic_container_daily {
   width: 100px;
   height: 80px;
-  top: 37.5px;
-  left: 32.5px;
+  top: 0px;
+  left: 0px;
   position: absolute;
 }
 .condition_graphic_daily {
   position: absolute;
-  left: 22.5px;
-  top: 12.5px;
+  left: 17.5px;
+  top: 17.5px;
 }
 .date_daily {
   width: 165px;
   color: rgba(255,255,255,1);
   position: absolute;
-  top: 14px;
-  left: 0px;
+  top: 17px;
+  left: 105px;
   font-family: Inter;
   font-weight: Normal;
-  font-size: 19px;
+  font-size: 24px;
   opacity: 1;
-  text-align: center;
+  text-align: left;
+}
+
+/* Dynamic Background Display */
+.widget_background {
+  width: 945px;
+  height: 720px;
+  opacity: 1;
+  position: absolute;
+  left: 335px;
+  top: 0px;
+  overflow: hidden;
+}
+#bg_background {
+  background: #5173CC;
+  opacity: 1;
+  position: absolute;
+  width: 1280px;
+  height: 720px;
+  left: 0px;
+  top: 0px;
 }
 
 /* ALERT WIDGET */
@@ -272,7 +313,7 @@ body {
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
-  opacity: 1;
+  opacity: 0;
   position: absolute;
   top: 336px;
   left: 958px;
@@ -339,36 +380,23 @@ body {
   text-align: left;
 }
 
-/* NAV WIDGET */
-.widget_nav {
-  width: 45px;
+/* DAILY BAR WIDGET */
+.widget_daily_bar {
+  width: 335px;
   height: 720px;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
   opacity: 1;
   position: absolute;
   top: 0px;
   left: 0px;
-  overflow: hidden;
-}
-.menu_icon {
-  opacity: 1;
-  width: 25px;
-  height: 25px;
-  position: absolute;
-  top: 8px;
-  left: 8px;
 }
 .nav_bar {
-  width: 45px;
+  width: 335px;
   height: 720px;
-  background: rgba(39,39,39,1);
+  background: #17182A;
   opacity: 1;
   position: absolute;
   top: 0px;
   left: 0px;
-  overflow: hidden;
 }
 
 /* PRESSURE WIDGET */
@@ -378,7 +406,7 @@ body {
   font-family: Inter;
   font-style: normal;
   color: white;
-  opacity: 1;
+  opacity: 0;
   position: absolute;
   top: 336px;
   left: 812px;
@@ -388,7 +416,7 @@ body {
   width: 138px;
   height: 109px;
   background: rgba(15,21,54,1);
-  opacity: 1;
+  opacity: 0;
   position: absolute;
   top: 0px;
   left: 0px;
@@ -456,7 +484,7 @@ body {
   color: white;
   font-family: Inter;
   font-weight: Normal;
-  opacity: 1;
+  opacity: 0;
   position: absolute;
   top: 336px;
   left: 666px;
@@ -541,7 +569,7 @@ body {
   width: 138px;
   height: 109px;
   font-family: Inter;
-  opacity: 1;
+  opacity: 0;
   position: absolute;
   top: 336px;
   left: 520px;
@@ -624,7 +652,7 @@ body {
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
-  opacity: 1;
+  opacity: 0;
   position: absolute;
   top: 336px;
   left: 374px;
@@ -733,7 +761,7 @@ body {
 .widget_sun {
   width: 313px;
   height: 109px;
-  opacity: 1;
+  opacity: 0;
   position: absolute;
   top: 336px;
   left: 53px;
@@ -832,22 +860,22 @@ body {
 
 /* NOW WIDGET */
 .widget_now {
-  width: 307px;
-  height: 166px;
+  width: 450px;
+  height: 200px;
   font-family: Inter;
   font-style: normal;
   color: white;
   opacity: 1;
   position: absolute;
-  top: 162px;
-  left: 965px;
+  top: 110px;
+  left: 380px;
   overflow: hidden;
 }
 .bg_now {
   width: 307px;
   height: 166px;
   background: rgba(15,21,54,1);
-  opacity: 1;
+  opacity: 0;
   position: relative;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
@@ -856,54 +884,54 @@ body {
   overflow: hidden;
 }
 #feelslike_now {
-  width: 90px;
+  width: 230px;
   color: rgba(255,255,255,1);
   position: absolute;
-  top: 131px;
-  left: 186px;
-  font-size: 14px;
+  top: 125px;
+  left: 20px;
+  font-size: 28px;
   opacity: 1;
   text-align: left;
 }
 #condition_text_now {
-  width: 104px;
-  color: rgba(208,224,255,1);
+  width: 200px;
+  color: white;
   position: absolute;
-  top: 111px;
-  left: 173px;
+  top: 125px;
+  left: 235px;
   font-family: Inter;
   font-weight: Normal;
-  font-size: 16px;
+  font-size: 28px;
   opacity: 1;
   text-align: left;
 }
 #hilo_now {
-  width: 120px;
-  color: rgba(255,255,255,1);
+  width: 200px;
+  color: #C6C6C6;
   position: absolute;
-  top: 90px;
-  left: 9px;
-  font-size: 14px;
+  top: 160px;
+  left: 40px;
+  font-size: 21px;
   opacity: 1;
   text-align: left;
 }
 #temp_now {
   width: 104px;
-  color: rgba(208,224,255,1);
+  color: white;
   position: absolute;
   top: 22px;
   left: 11px;
-  font-size: 60px;
+  font-size: 85px;
   opacity: 1;
   text-align: left;
 }
 #title_now {
   width: 36px;
-  color: rgba(208,224,255,1);
+  color: white;
   position: absolute;
-  top: 9px;
-  left: 10px;
-  font-size: 16px;
+  top: 0px;
+  left: 0px;
+  font-size: 28px;
   opacity: 1;
   text-align: left;
 }
@@ -911,8 +939,8 @@ body {
   opacity: 1;
   width: 120px;
   height: 95px;
-  left: 165px;
-  top: 15px;
+  left: 160px;
+  top: 30px;
   position: absolute;
 }
 #condition_graphic_now {
@@ -925,22 +953,21 @@ body {
 
 /* HOURLY FORECAST WIDGET */
 .hourly_group {
-  width: 904px;
-  height: 166px;
+  width: 893px;
+  height: 183px;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
   opacity: 1;
   position: absolute;
-  top: 162px;
-  left: 53px;
-  overflow: hidden;
+  top: 415px;
+  left: 361px;
 }
 .group_bg_hourly {
-  width: 904px;
-  height: 166px;
-  background: rgba(0,86,215,1);
-  opacity: 0.4000000059604645;
+  width: 893px;
+  height: 183px;
+  background: #17182A;
+  opacity: 1;
   position: relative;
   top: 0px;
   left: 0px;
@@ -948,83 +975,62 @@ body {
   border-top-right-radius: 10px;
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
-  overflow: hidden;
 }
 .widget_hourly_6 {
-  width: 120px;
-  height: 150px;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
+  width: 132px;
+  height: 165px;
   opacity: 1;
   position: absolute;
   top: 8px;
-  left: 776px;
-  overflow: hidden;
+  left: 708px;
 }
 .widget_hourly_5 {
-  width: 120px;
-  height: 150px;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
+  width: 132px;
+  height: 165px;
   opacity: 1;
   position: absolute;
   top: 8px;
-  left: 648px;
-  overflow: hidden;
+  left: 568px;
 }
 .widget_hourly_4 {
-  width: 120px;
-  height: 150px;
+  width: 132px;
+  height: 165px;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
   opacity: 1;
   position: absolute;
   top: 8px;
-  left: 520px;
+  left: 428px;
   overflow: hidden;
 }
 .widget_hourly_3 {
-  width: 120px;
-  height: 150px;
+  width: 132px;
+  height: 165px;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
   opacity: 1;
   position: absolute;
   top: 8px;
-  left: 392px;
+  left: 288px;
   overflow: hidden;
 }
 .widget_hourly_2 {
-  width: 120px;
-  height: 150px;
+  width: 132px;
+  height: 165px;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
   opacity: 1;
   position: absolute;
   top: 8px;
-  left: 264px;
+  left: 148px;
   overflow: hidden;
 }
 .widget_hourly_1 {
-  width: 120px;
-  height: 150px;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
-  opacity: 1;
-  position: absolute;
-  top: 8px;
-  left: 136px;
-  overflow: hidden;
-}
-.widget_hourly_0 {
-  width: 120px;
-  height: 150px;
+  width: 132px;
+  height: 165px;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
@@ -1035,8 +1041,8 @@ body {
   overflow: hidden;
 }
 .bg_hourly {
-  width: 120px;
-  height: 150px;
+  width: 132px;
+  height: 165px;
   background: rgba(217,217,217,0.05999999865889549);
   opacity: 1;
   position: relative;
@@ -1091,23 +1097,24 @@ body {
 
 /* SEARCH WIDGET */
 .widget_search {
-  width: 380px;
-  height: 60px;
+  width: 921px;
+  height: 75px;
   background-size: cover;
   opacity: 1;
   position: absolute;
-  top: 55px;
-  left: 860px;
+  top: 12px;
+  left: 347px;
   font-family: Inter;
 }
 #input_search {
-  float: left;
+  text-align: left;
   position: absolute;
-  font-size: 20px;
-  top: 17px;
+  font-size: 40px;
+  top: 7.5px;
   left: 30px;
   margin-left: 5px;
-  width: 310px;
+  width: 900px;
+  height: 60px;
   border: none;
   background-color: transparent;
   color: white;
@@ -1116,34 +1123,19 @@ body {
     outline: none;
     color: white;
 }
-@keyframes invalid_blink_1 {
-  from {
-    opacity: 0;
-  } to {
-    opacity: 1;
-  }
-}
-@keyframes invalid_blink_2 {
-  from {
-    opacity: 1;
-  } to {
-    opacity: 0;
-  }
-}
 #dropdown_search {
-  width: 340px;
-  height: 145px;
-  background: black;
-  border: 1px solid white;
+  width: 921px;
+  height: 250px;
+  background: #708BD0;
   position: absolute;
   opacity: 0;
-  top: 60px;
-  left: 20px;
+  top: 90px;
+  left: 0px;
   z-index: 1;
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
-  border-bottom-left-radius: 15px;
-  border-bottom-right-radius: 15px;
+  border-top-left-radius: 50px;
+  border-top-right-radius: 50px;
+  border-bottom-left-radius: 50px;
+  border-bottom-right-radius: 50px;
   font-size: 18px;
 }
 #dropdown_text_1_search {
@@ -1187,44 +1179,20 @@ body {
   color: white;
 }
 #search_bg {
-  width: 340px;
-  height: 40px;
-  background: black;
-  border: 1px solid white;
-  opacity: 1;
+  width: 921px;
+  height: 75px;
+  background: #708BD0;
+  opacity: 0.75;
   position: absolute;
-  top: 10px;
-  left: 20px;
-  border-top-left-radius: 50px;
-  border-top-right-radius: 50px;
-  border-bottom-left-radius: 50px;
-  border-bottom-right-radius: 50px;
-}
-#search_blink_bg {
-  width: 340px;
-  height: 40px;
-  background: red;
-  border: 1px solid white;
-  opacity: 0;
-  position: absolute;
-  top: 10px;
-  left: 20px;
+  top: 0px;
+  left: 0px;
   border-top-left-radius: 50px;
   border-top-right-radius: 50px;
   border-bottom-left-radius: 50px;
   border-bottom-right-radius: 50px;
 }
 
-.widget_location_display {
-  width: 572px;
-  height: 103px;
-  background-size: cover;
-  opacity: 1;
-  position: absolute;
-  top: 27px;
-  left: 74px;
-  overflow: hidden;
-}
+/* LOCATION DISPLAY - POTENTIALLY DEPRECATED*/
 #location_text {
   width: 700px;
   height: 100px;
@@ -1235,6 +1203,6 @@ body {
   font-family: Inter;
   font-weight: Bold;
   font-size: 70px;
-  opacity: 1;
+  opacity: 0;
   text-align: left;
 }
