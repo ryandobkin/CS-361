@@ -67,7 +67,7 @@ class GuiMessageController:
         last_update = 0
         while True:
             if eel.updateSearchInFocus()() is True:
-                eel.setSearchDropdownOpacity("0.9")
+                eel.setSearchDropdownOpacity("0.95")
                 recent_search = eel.updateSearchAutocomplete()()
                 if recent_search == "" and self.current_search_term != recent_search:
                     self.current_search_term = recent_search
@@ -111,8 +111,8 @@ class GuiMessageController:
             widget_forecast = forecast["widget_forecast"]
             alert_forecast = forecast["alert_forecast"]
             self.update_daily_forecasts(daily_forecast)
-            self.update_widget_forecasts(widget_forecast)
-            self.update_alert_forecast(alert_forecast)
+            #self.update_widget_forecasts(widget_forecast)
+            #self.update_alert_forecast(alert_forecast)
         except KeyboardInterrupt as e:
             print("UpdateForecast Error:", e)
 
@@ -125,10 +125,7 @@ class GuiMessageController:
                 daily_fc = daily_json[daily_fc_top]
                 update_daily_date(day, daily_fc["name"])
                 condition_list = daily_fc["shortForecast"].split(' ')
-                if len(condition_list) >= 2:
-                    update_daily_weather_condition_text(day, f"{condition_list[0]} {condition_list[1]}")
-                else:
-                    update_daily_weather_condition_text(day, f"{condition_list[0]}")
+                update_daily_weather_condition_text(day, condition_list)
                 update_daily_weather_condition_graphic(day, condition_list)
                 update_daily_hilo(day, daily_fc["maxTemperature"], daily_fc["minTemperature"])
                 if day == 6:
@@ -155,7 +152,8 @@ class GuiMessageController:
             time_eff, time_exp = self.to_12hr_offset_time(alert_forecast['effective'], alert_forecast['expires'])
             effective_times = f"Effective {time_eff} through {time_exp}"
             alert_body_full = f"{effective_times}\n{af['headline']}\n"
-            update_alert(True, af["event"], alert_body_full, af["senderName"])
+            # update_alert(True, af["event"], alert_body_full, af["senderName"])
+            update_alert()
 
         else:
             pass
@@ -186,8 +184,6 @@ class GuiMessageController:
         return return_arr
 
 
-
-
 def run():
     """
     Starts the web page and eel loop.
@@ -197,6 +193,12 @@ def run():
         eel.start('index.html', size=(1614, 937), block=True)
     except KeyboardInterrupt:
         exit(4)
+
+
+# SETS SEARCH BAR TO LOCATION ON BLUR
+@eel.expose
+def search_blur_fix():
+    eel.updateSearchLocationDisplay(gui_message_controller.current_search_term)
 
 
 # LOCATION WIDGET VV
@@ -211,7 +213,7 @@ def update_location(new_location=None):
         The new location to display in the location banner.
     """
     pass
-    # eel.updateLocationDisplay(new_location)
+    eel.updateSearchLocationDisplay(new_location)
 
 
 # SEARCH WIDGET QUERY
@@ -229,6 +231,7 @@ def search_query(query='Default'):
     pred_list = gui_message_controller.current_prediction_list
     if pred_list[0] != "":
         top_query_pred = pred_list[0]
+        gui_message_controller.current_search_term = top_query_pred
         query_out = {"service": "geocoding",
                      "data": top_query_pred}
         update_location(top_query_pred)
@@ -355,8 +358,8 @@ def update_daily_hilo(day=0, hi=0, lo=0):
     Lo : int
         The new Lo value to be put into the display.
     """
-    hi = f"{hi} + {chr(176)}"
-    lo = f"{lo} + {chr(176)}"
+    hi = f"{hi}{chr(176)}"
+    lo = f"{lo}{chr(176)}"
     daily_hi_widget_name = 'hi_daily_' + str(day)
     daily_lo_widget_name = 'lo_daily_' + str(day)
     eel.updateDailyHi(daily_hi_widget_name, hi)
@@ -376,6 +379,7 @@ def update_daily_weather_condition_text(day=0, weather_condition='Default'):
     weather_condition : str
         The new weather condition.
     """
+    weather_condition = correct_condition_terms(weather_condition)
     daily_widget_name = 'condition_text_daily_' + str(day)
     #print(f"TEXT | Value 1: {daily_widget_name} | Value 2: {weather_condition}")
     eel.updateDailyWeatherConditionText(daily_widget_name, weather_condition)
@@ -394,6 +398,24 @@ def update_daily_weather_condition_graphic(day=0, graphic='sunny'):
     graphic : str
         The name of the graphic to be displayed
     """
+    graphic_str = correct_condition_terms(graphic)
+    #print("GRAPHIC_STR: ", graphic_str)
+    short_forecast_to_graphic_dict = {
+        "Sunny": 'sunny', "Partly Sunny": 'partly_cloudy', "Mostly Sunny": 'sunny',
+        "Cloudy": 'cloudy', "Partly Cloudy": 'partly_cloudy', "Mostly Cloudy": 'cloudy',
+        "Patchy Fog": 'fog', "Scattered Showers": 'light_rain', "Showers": 'light_rain',
+        "Isolated Showers": 'light_rain', "Showers and Thunderstorms": 'thunderstorm_rain',
+        "Showers Thunderstorms": 'thunderstorm_rain', "Chance Showers": 'light_rain'}
+    graphic_name = short_forecast_to_graphic_dict[graphic_str]
+    daily_widget_name = 'condition_graphic_daily_' + str(day)
+    graphic_directory = './Images/' + graphic_name + '_graphic.svg'
+    width, height = get_graphic_dimensions(graphic_name)
+    offsetx, offsety = get_graphic_offset(graphic_name, 100, 80)
+    #print(f"GRAPHIC | V1: {daily_widget_name} | V2: {graphic_directory} | V3 {width} | V4: {height} | V5: {offsetx} | V6: {offsety}")
+    eel.updateDailyWeatherConditionGraphic(daily_widget_name, graphic_directory, width, height, offsetx, offsety)
+
+
+def correct_condition_terms(graphic):
     if type(graphic) != str:
         if len(graphic) == 2:
             if graphic[1] == 'And':
@@ -402,27 +424,14 @@ def update_daily_weather_condition_graphic(day=0, graphic='sunny'):
                 graphic_str = f"{graphic[0]} {graphic[1]}"
         elif len(graphic) > 2:
             if graphic[1] == 'And':
-                graphic_str = f"{graphic[0]} {graphic[2]}"
+                graphic_str = f"{graphic[0]} and {graphic[2]}"
             else:
                 graphic_str = f"{graphic[0]} {graphic[1]}"
         else:
             graphic_str = f"{graphic[0]}"
     else:
         graphic_str = graphic
-    print(f"GRAPHIC ORIGINAL - {graphic} || GRAPHIC UPDATED - {graphic_str}", )
-    #print("GRAPHIC_STR: ", graphic_str)
-    short_forecast_to_graphic_dict = {
-        "Sunny": 'sunny', "Partly Sunny": 'partly_cloudy', "Mostly Sunny": 'sunny',
-        "Cloudy": 'cloudy', "Partly Cloudy": 'partly_cloudy', "Mostly Cloudy": 'cloudy',
-        "Patchy Fog": 'fog', "Scattered Showers": 'light_rain', "Showers": 'light_rain',
-        "Isolated Showers": 'light_rain', "Showers Thunderstorms": 'thunderstorm_rain', "Chance Showers": 'light_rain'}
-    graphic_name = short_forecast_to_graphic_dict[graphic_str]
-    daily_widget_name = 'condition_graphic_daily_' + str(day)
-    graphic_directory = './Images/' + graphic_name + '_graphic.svg'
-    width, height = get_graphic_dimensions(graphic_name)
-    offsetx, offsety = get_graphic_offset(graphic_name, 100, 80)
-    print(f"GRAPHIC | V1: {daily_widget_name} | V2: {graphic_directory} | V3 {width} | V4: {height} | V5: {offsetx} | V6: {offsety}")
-    eel.updateDailyWeatherConditionGraphic(daily_widget_name, graphic_directory, width, height, offsetx, offsety)
+    return graphic_str
 
 
 # DAILY WIDGET | DATE
