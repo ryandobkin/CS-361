@@ -7,7 +7,7 @@ import json
 import eel
 
 # Will use sample request and will not request from OpenUV API, using sample response instead
-IS_TEST = True
+IS_TEST = False
 
 class ForecastController:
     """
@@ -51,9 +51,10 @@ class ForecastController:
                 if self.is_test:
                     self.is_test = False
                     self.disable_uv_api = True
-                    self.test_cord_list = {"Newport": [36.6041944, -117.8738554], "Durham": [36.0763129, -78.71559]}
+                    self.test_cord_list = {"Newport": [36.6041944, -117.8738554], "Durham": [36.0763129, -78.71559],
+                                           "Palm Springs": [33.829722, -116.534434]}
                     self.inbound_queue.append({"socket": ['127.0.0.2', 23457], "type": "request",
-                                               "service": "forecast", "data": self.test_cord_list["Durham"]})
+                                               "service": "forecast", "data": self.test_cord_list["Palm Springs"]})
                 if len(self.inbound_queue) > 0:
                     self.last_request = self.inbound_queue.pop(0)
                     if self.last_request["type"] == "request" and self.last_request["service"] == "forecast":
@@ -200,8 +201,6 @@ class ForecastController:
         """
         fc_data = forecast_api_manager.get_json_from_url(self.forecast_daily_url)
         daily_data_arr = []
-        if fc_data["properties"]:
-            print("AAA")
         for _ in range(14):
             prop_data = fc_data["properties"]["periods"][_]
             daily_dict = {
@@ -378,13 +377,28 @@ class ForecastController:
         """
         fc_data = forecast_api_manager.get_json_from_url(self.active_alert_url)
         print(self.active_alert_url)
-        pd = fc_data["features"][0]["properties"]
-        alert_data = {"areaDesc": pd["areaDesc"], "effective": pd["effective"], "expires": pd["expires"],
-                      "status": pd["status"], "severity": pd["severity"], "certainty": pd["certainty"],
-                      "urgency": pd["urgency"], "event": pd["event"], "senderName": pd["senderName"],
-                      "headline": pd["headline"], "description": pd["description"], "instruction": pd["instruction"],
-                      "response": pd["response"]}
-        self.active_alert_dict = alert_data
+        if len(fc_data["features"]) != 0:
+            pd = fc_data["features"][0]["properties"]
+            alert_data = {"areaDesc": pd["areaDesc"], "effective": pd["effective"], "expires": pd["expires"],
+                          "status": pd["status"], "severity": pd["severity"], "certainty": pd["certainty"],
+                          "urgency": pd["urgency"], "event": pd["event"], "senderName": pd["senderName"],
+                          "headline": pd["headline"], "description": pd["description"], "instruction": pd["instruction"],
+                          "response": pd["response"]}
+            parsed_description = self.parse_alert_description(pd["description"])
+            alert_data.update({"parsed_description": parsed_description})
+            self.active_alert_dict = alert_data
+        else:
+            self.active_alert_dict = None
+
+    def parse_alert_description(self, description):
+        """
+        Parses the alert description.
+        """
+        desc = description.split('*')
+        print("p1", f"{desc[1]}{desc[2]}{desc[3]}{desc[4]}")
+        desc = f"{desc[1]}{desc[2]}{desc[3]}{desc[4]}"
+
+        return desc
 
     def parse_openuv_data(self):
         """

@@ -24,9 +24,7 @@
     </div>
     <div class="widget_search">
         <span id="search_bg"></span>
-        <input id="input_search" type="text" value="Search for a City"
-         onfocus="this.value = ''"
-         onblur="this.value = 'Search for a City'" />
+        <input id="input_search" type="text" value="Search for a City"/>
         <div id="dropdown_search">
             <button id="dropdown_text_1_search"></button>
             <button id="dropdown_text_2_search"></button>
@@ -38,7 +36,8 @@
     <div id="location_text">Los Angeles, CA</div>
     <div class="daily_group">
         <div class="widget_daily_6">
-            <div class="bg_daily"></div>
+            <button class="daily_button" id="daily_6_button"></button>
+            <span id="daily_6_bg" class="bg_daily_unselected"></span>
             <span id="hi_daily_6" class="hi_daily">82&deg;</span>
             <span id="lo_daily_6" class="lo_daily">62&deg;</span>
             <span id="condition_text_daily_6" class="condition_text_daily">Partly Cloudy</span>
@@ -48,7 +47,8 @@
             <span id="date_daily_6" class="date_daily">Today</span>
         </div>
         <div class="widget_daily_5">
-            <div class="bg_daily"></div>
+            <button class="daily_button" id="daily_5_button"></button>
+            <div id="daily_5_bg"  class="bg_daily_unselected"></div>
             <span id="hi_daily_5" class="hi_daily">82&deg;</span>
             <span id="lo_daily_5" class="lo_daily">62&deg;</span>
             <span id="condition_text_daily_5" class="condition_text_daily">Partly Cloudy</span>
@@ -57,7 +57,8 @@
             </div>
             <span id="date_daily_5" class="date_daily">Today</span></div>
         <div class="widget_daily_4">
-            <div class="bg_daily"></div>
+            <button class="daily_button" id="daily_4_button"></button>
+            <span id="daily_4_bg" class="bg_daily_unselected"></span>
             <span id="hi_daily_4" class="hi_daily">82&deg;</span>
             <span id="lo_daily_4" class="lo_daily">62&deg;</span>
             <span id="condition_text_daily_4" class="condition_text_daily">Partly Cloudy</span>
@@ -66,7 +67,8 @@
             </div>
             <span id="date_daily_4" class="date_daily">Today</span></div>
         <div class="widget_daily_3">
-            <div class="bg_daily"></div>
+            <button class="daily_button" id="daily_3_button"></button>
+            <span id="daily_3_bg" class="bg_daily_unselected"></span>
             <span id="hi_daily_3" class="hi_daily">82&deg;</span>
             <span id="lo_daily_3" class="lo_daily">62&deg;</span>
             <span id="condition_text_daily_3" class="condition_text_daily">Partly Cloudy</span>
@@ -75,7 +77,8 @@
             </div>
             <span id="date_daily_3" class="date_daily">Today</span></div>
         <div class="widget_daily_2">
-            <div class="bg_daily"></div>
+            <button class="daily_button" id="daily_2_button"></button>
+            <span id="daily_2_bg" class="bg_daily_unselected"></span>
             <span id="hi_daily_2" class="hi_daily">82&deg;</span>
             <span id="lo_daily_2" class="lo_daily">62&deg;</span>
             <span id="condition_text_daily_2" class="condition_text_daily">Partly Cloudy</span>
@@ -84,6 +87,8 @@
             </div>
             <span id="date_daily_2" class="date_daily">Today</span></div>
         <div class="widget_daily_1">
+            <button class="daily_button" id="daily_1_button"></button>
+            <span id="daily_1_bg" class="bg_daily_unselected"></span>
             <div class="bg_daily"></div>
             <span id="hi_daily_1" class="hi_daily">82&deg;</span>
             <span id="lo_daily_1" class="lo_daily">62&deg;</span>
@@ -93,7 +98,8 @@
             </div>
             <span id="date_daily_1" class="date_daily">Today</span></div>
         <div class="widget_daily_0">
-            <div class="bg_daily"></div>
+            <button class="daily_button" id="daily_0_button"></button>
+            <span id="daily_0_bg" class="bg_daily_selected"></span>
             <span id="hi_daily_0" class="hi_daily">82&deg;</span>
             <span id="lo_daily_0" class="lo_daily">62&deg;</span>
             <span id="condition_text_daily_0" class="condition_text_daily">Partly Cloudy</span>
@@ -102,7 +108,7 @@
             </div>
             <span id="date_daily_0" class="date_daily">Today</span></div>
     </div>
-    <div class="hourly_group">
+    <div class="hourly_group_bot" id="hourly_group_id">
         <div class="group_bg_hourly"></div>
         <div class="widget_hourly_6">
             <div class="bg_hourly"></div>
@@ -153,13 +159,6 @@
             <span id="time_hourly_1" class="time_hourly">Now</span>
         </div>
     </div>
-    <div class="widget_alert">
-        <div id="bg_alert"></div>
-        <span id="header_alert">Severe Weather Alert</span>
-        <span id="icon_alert" class="material-symbols-outlined">emergency_home</span>
-        <span id="body_alert">High Wind Warning until 5:00 PM, Monday, October 13.</span>
-        <span id="source_alert">National Weather Service - Orange County</span>
-    </div>
     <div class="widget_daily_bar">
         <div class="nav_bar"></div>
     </div>
@@ -175,13 +174,15 @@
         </div>
     </div>
     <div class="cc_widget_group">
-        <div class="cc_collapsed" id="cc_tab_collapsed">
+        <button class="cc_visible" id="cc_tab_collapsed">
             <span id="cc_tab_text">Current Conditions</span>
-        </div>
-        <div class="cc_expanded" id="cc_expanded_group">
-            <div id="cc_tab_expanded">
-                <span id="cc_tab_text">Current Conditions</span>
-            </div>
+            <img id="collapsed_tab_cc_arrow" src="./Images/popup_tab_arrow_up.svg">
+        </button>
+        <div class="cc_hidden" id="cc_expanded_group">
+            <button id="cc_tab_expanded">
+                <span id="cc_expanded_tab_text">Current Conditions</span>
+                <img id="expanded_tab_cc_arrow" src="./Images/popup_tab_arrow_up.svg">
+            </button>
             <span id="cc_widget_expanded"></span>
             <div class="widget_pressure">
                 <div id="bg_pressure" class="widget_bg_color"></div>
@@ -243,6 +244,30 @@
                 <span id="dusk_value_sun">8:31 PM</span>
             </div>
         </div>
+        </div>
+    </div>
+    <div class="widget_alert">
+        <div class="alert_visible">
+            <button id="alert_tab_collapsed">
+                <span id="alert_collapsed_bg"></span>
+                <span id="alert_tab_text_collapsed">Weather Alert</span>
+                <img id="collapsed_tab_alert_arrow" src="./Images/popup_tab_arrow_up.svg">
+            </button>
+        </div>
+        <div class="alert_hidden" id="alert_expanded_group">
+            <div id="bg_alert"></div>
+            <button id="alert_tab_expanded">
+                <span id="alert_expanded_bg"></span>
+                <span id="alert_tab_text_expanded">Weather Alert</span>
+                <img id="expanded_tab_alert_arrow" src="./Images/popup_tab_arrow_up.svg">
+            </button>
+            <div class="alert_text">
+                <span id="alert_event">Severe Weather Alert</span>
+                <span id="alert_headline">High Wind Warning until 5:00 PM, Monday, October 13.</span>
+                <span id="alert_description">DESCRIPTION:</span>
+                <span id="alert_instruction">INSTRUCTION:</span>
+                <span id="alert_source">National Weather Service - Orange County</span>
+            </div>
         </div>
     </div>
 </body>

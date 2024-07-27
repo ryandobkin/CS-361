@@ -7,7 +7,7 @@ inp_event.addEventListener('keydown', (event) => {
     if (event.key === "Enter") {
         let value = inp_event.value;
         document.activeElement.blur();
-        updateSearchQuery(value);
+        updateSearchQuery(value, "enter");
     } else if (event.key === "Escape") {
         document.activeElement.blur();
         eel.search_blur_fix();
@@ -17,6 +17,215 @@ inp_event.addEventListener('keydown', (event) => {
     }
     event.preventDefault();
 }, true);
+
+let isMouseHover = false;
+let isHighlight = false;
+let validClick = false;
+let lastLocation = "";
+
+// Event listeners for pop up tabs
+// Current Condition Tab Controller
+let cc_exp = document.getElementById('cc_tab_expanded');
+let cc_col = document.getElementById('cc_tab_collapsed');
+
+cc_col.onclick = function() {
+    document.getElementById('hourly_group_id').className = 'hourly_group_top';
+    document.getElementById('cc_tab_collapsed').className = 'cc_hidden';
+    document.getElementById('cc_expanded_group').className = 'cc_visible';
+
+    document.getElementById('alert_tab_collapsed').className = 'alert_visible';
+    document.getElementById('alert_expanded_group').className = 'alert_hidden';
+}
+
+cc_exp.onclick = function() {
+    document.getElementById('hourly_group_id').className = 'hourly_group_bot';
+    document.getElementById('cc_tab_collapsed').className = 'cc_visible';
+    document.getElementById('cc_expanded_group').className = 'cc_hidden';
+}
+
+// Alert Tab Controller
+let alert_exp = document.getElementById('alert_tab_expanded');
+let alert_col = document.getElementById('alert_tab_collapsed');
+
+alert_col.onclick = function() {
+    document.getElementById('alert_tab_collapsed').className = 'alert_hidden';
+    document.getElementById('alert_expanded_group').className = 'alert_visible';
+
+    document.getElementById('hourly_group_id').className = 'hourly_group_bot';
+    document.getElementById('cc_tab_collapsed').className = 'cc_visible';
+    document.getElementById('cc_expanded_group').className = 'cc_hidden';
+}
+
+alert_exp.onclick = function() {
+    document.getElementById('alert_tab_collapsed').className = 'alert_visible';
+    document.getElementById('alert_expanded_group').className = 'alert_hidden';
+}
+
+// Event listeners for daily selectors
+let current_day = 'daily_0_bg';
+
+document.getElementById('daily_0_button').onclick = function() {
+    document.getElementById(current_day).className = 'bg_daily_unselected';
+    current_day = 'daily_0_bg';
+    document.getElementById(current_day).className = 'bg_daily_selected';
+    updateCurrentDay(0);
+}
+document.getElementById('daily_1_button').onclick = function() {
+    console.log("daily1button")
+    document.getElementById(current_day).className = 'bg_daily_unselected';
+    current_day = 'daily_1_bg';
+    document.getElementById(current_day).className = 'bg_daily_selected';
+    updateCurrentDay(1);
+}
+document.getElementById('daily_2_button').onclick = function() {
+    document.getElementById(current_day).className = 'bg_daily_unselected';
+    current_day = 'daily_2_bg';
+    document.getElementById(current_day).className = 'bg_daily_selected';
+    updateCurrentDay(2);
+}
+document.getElementById('daily_3_button').onclick = function() {
+    document.getElementById(current_day).className = 'bg_daily_unselected';
+    current_day = 'daily_3_bg';
+    document.getElementById(current_day).className = 'bg_daily_selected';
+    updateCurrentDay(3);
+}
+document.getElementById('daily_4_button').onclick = function() {
+    document.getElementById(current_day).className = 'bg_daily_unselected';
+    current_day = 'daily_4_bg';
+    document.getElementById(current_day).className = 'bg_daily_selected';
+    updateCurrentDay(4);
+}
+document.getElementById('daily_5_button').onclick = function() {
+    document.getElementById(current_day).className = 'bg_daily_unselected';
+    current_day = 'daily_5_bg';
+    document.getElementById(current_day).className = 'bg_daily_selected';
+    updateCurrentDay(5);
+}
+document.getElementById('daily_6_button').onclick = function() {
+    document.getElementById(current_day).className = 'bg_daily_unselected';
+    current_day = 'daily_6_bg';
+    document.getElementById(current_day).className = 'bg_daily_selected';
+    updateCurrentDay(6);
+}
+
+// This is probably so inefficient - sorry!
+//Dropdown 1 highlight handler
+let dt1 = document.getElementById('dropdown_text_1_search')
+dt1.addEventListener("mouseenter", event => {
+    if (dt1.innerText !== '') {
+        if (dt1.innerText !== 'No Data Available') {
+            validClick = true;
+            dt1.style.backgroundColor = '#232535';
+        } else {
+            validClick = false;
+        }
+    } else {
+        validClick = false
+    }
+}, true);
+dt1.addEventListener("mouseleave", event => {
+    dt1.style.backgroundColor = null;
+}, true);
+dt1.onclick = function() {
+    if (validClick === true) {
+        updateSearchQuery(dt1.innerText, "click");
+    }
+}
+
+//Dropdown 2 highlight handler
+let dt2 = document.getElementById('dropdown_text_2_search')
+dt2.addEventListener("mouseenter", event => {
+    if (dt2.innerText !== '') {
+        if (dt2.innerText !== 'No Data Available') {
+            validClick = true;
+            dt2.style.backgroundColor = '#232535';
+        } else {
+            validClick = false;
+        }
+    } else {
+        validClick = false
+    }
+}, true);
+dt2.addEventListener("mouseleave", event => {
+    dt2.style.backgroundColor = null;
+}, true);
+dt2.onclick = function() {
+    if (validClick === true) {
+        updateSearchQuery(dt2.innerText, "click");
+    }
+}
+
+//Dropdown 3 highlight handler
+let dt3 = document.getElementById('dropdown_text_3_search')
+dt3.addEventListener("mouseenter", event => {
+    if (dt3.innerText !== '') {
+        if (dt3.innerText !== 'No Data Available') {
+            validClick = true;
+            dt3.style.backgroundColor = '#232535';
+        } else {
+            validClick = false;
+        }
+    } else {
+        validClick = false
+    }
+}, true);
+dt3.addEventListener("mouseleave", event => {
+    isMouseHover = false;
+    dt3.style.backgroundColor = null;
+}, true);
+dt3.onclick = function() {
+    if (validClick === true) {
+        updateSearchQuery(dt3.innerText, "click");
+    }
+}
+
+//Dropdown 4 highlight handler
+let dt4 = document.getElementById('dropdown_text_4_search')
+dt4.addEventListener("mouseenter", event => {
+    if (dt4.innerText !== '') {
+        if (dt4.innerText !== 'No Data Available') {
+            validClick = true;
+            dt4.style.backgroundColor = '#232535';
+        } else {
+            validClick = false;
+        }
+    } else {
+        validClick = false
+    }
+}, true);
+dt4.addEventListener("mouseleave", event => {
+    isMouseHover = false;
+    dt4.style.backgroundColor = null;
+}, true);
+dt4.onclick = function() {
+    if (validClick === true) {
+        updateSearchQuery(dt4.innerText, "click");
+    }
+}
+
+//Dropdown 5 highlight handler
+let dt5 = document.getElementById('dropdown_text_5_search')
+dt5.addEventListener("mouseenter", event => {
+    if (dt5.innerText !== '') {
+        if (dt5.innerText !== 'No Data Available') {
+            validClick = true;
+            dt5.style.backgroundColor = '#232535';
+        } else {
+            validClick = false;
+        }
+    } else {
+        validClick = false
+    }
+}, true);
+dt5.addEventListener("mouseleave", event => {
+    isMouseHover = false;
+    dt5.style.backgroundColor = null;
+}, true);
+dt5.onclick = function() {
+    if (validClick === true) {
+        updateSearchQuery(dt5.innerText, "click");
+    }
+}
 
 // Set Dropdown Opacity
 eel.expose(setSearchDropdownOpacity);
@@ -34,11 +243,38 @@ function updateSearchAutocompleteDropdownFields(autocomplete_list) {
     document.getElementById('dropdown_text_5_search').innerText = autocomplete_list[4];
 }
 
+// Search widget focus/blur event listeners
+document.getElementById("input_search").addEventListener("focus", event => {
+    document.getElementById('alert_tab_collapsed').className = 'alert_visible';
+    document.getElementById('alert_expanded_group').className = 'alert_hidden';
+    document.getElementById('hourly_group_id').className = 'hourly_group_bot';
+    document.getElementById('cc_tab_collapsed').className = 'cc_visible';
+    document.getElementById('cc_expanded_group').className = 'cc_hidden';
+    console.log("input_search_onfocus_true");
+    inp_event.value = '';
+    isHighlight = true;
+}, true);
+document.getElementById("input_search").addEventListener("blur", event => {
+    if (lastLocation !== "") {
+        inp_event.value = lastLocation;
+    } else {
+        inp_event.value = 'Search for a City';
+        isHighlight = false;
+    }
+}, false);
+
 // Search Query
 eel.expose(updateSearchQuery);
-async function updateSearchQuery(query) {
-    //eel.print_in_python("updateSearchQuery");
-    eel.search_query(query)();
+async function updateSearchQuery(query, type) {
+    eel.print_in_python("updateSearchQuery");
+    eel.search_query(query, type);
+    lastLocation = query;
+}
+
+// Update current selected day for widgets
+eel.expose(updateCurrentDay);
+function updateCurrentDay(day) {
+    eel.update_current_day(day);
 }
 
 // Search Autocomplete Update
@@ -51,13 +287,24 @@ function updateSearchAutocomplete() {
 eel.expose(updateSearchInFocus);
 function updateSearchInFocus() {
     return document.activeElement === document.getElementById("input_search");
+    // if (isHighlight === true) {
+    //     return true
+    // } else {
+    //     switch (isMouseHover) {
+    //         case false:
+    //             return false
+    //         case 1:
+    //
+    //     }
+    // }
+    // return false
 }
 
 // Updates Location Display - Which is now the search bar kinda!
 eel.expose(updateSearchLocationDisplay);
 function updateSearchLocationDisplay(new_location) {
     //eel.print_in_python("updateLocationDisplay");
-    document.getElementById('input_search').innerText = new_location;
+    document.getElementById('input_search').value = new_location;
 }
 
 // Updates Daily Rain Percentage %
@@ -181,35 +428,24 @@ function updatePressureWidgetValues(pressure) {
     document.getElementById("value_pressure").innerText = pressure;
 }
 
-// Updates Alert Widget Visibility
-eel.expose(updateAlertWidgetVisibility);
-function updateAlertWidgetVisibility(visible) {
-    //eel.print_in_python("updateAlertWidgetVisibility");
-    document.getElementById("widget_alert").style["opacity"] = visible;
-}
-
 // Updates Alert Widget Text Displays
 eel.expose(updateAlertWidget);
-function updateAlertWidget(head, body, source) {
-    eel.print_in_python("updateAlertWidget");
-    document.getElementById("header_alert").innerText = head;
-    document.getElementById("body_alert").innerText = body;
-    document.getElementById("source_alert").innerText = source;
+function updateAlertWidget(event, headline, description, instruction, source) {
+    //eel.print_in_python("updateAlertWidget");
+    document.getElementById("alert_event").innerText = event;
+    document.getElementById("alert_headline").innerText = headline;
+    document.getElementById("alert_description").innerText = description;
+    document.getElementById("alert_instruction").innerText = instruction;
+    document.getElementById("alert_source").innerText = source;
 }
 
 // Updates Now Widget Values
 eel.expose(updateNowWidget);
-function updateNowWidget(new_temp, hilo, condition, new_feels_like, graphic_directory, width, height, offx, offy) {
+function updateNowWidget(new_temp, hilo, condition, new_feels_like) {
     //eel.print_in_python("updateNowWidget");
     document.getElementById("feelslike_now").innerText = new_feels_like;
     document.getElementById("condition_text_now").innerText = condition;
     document.getElementById("hilo_now").innerText = hilo;
     document.getElementById("temp_now").innerText = new_temp;
-    let doc_element = document.getElementById("condition_graphic_now");
-    doc_element.src = graphic_directory;
-    doc_element.width = width;
-    doc_element.height = height;
-    doc_element.style["left"] = offx;
-    doc_element.style["top"] = offy;
 }
 
