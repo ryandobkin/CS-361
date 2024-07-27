@@ -1,5 +1,5 @@
 Weather Application - Course Project CS 361
-Time spent: 55 hours
+Time spent: 60 hours
 Start today:
 
 SOCKETS
