@@ -492,6 +492,10 @@ def correct_condition_terms(graphic):
                     graphic_str = f"{graphic[1]} {graphic[2]}\n{graphic[3]} {graphic[4]}"
                 elif len(graphic) == 4:
                     graphic_str = f"{graphic[1]} {graphic[2]} {graphic[3]}"
+            elif f"{graphic[1]} {graphic[2]} {graphic[3]}" == "then Slight Chance":
+                graphic_str = f"{graphic[0]} {graphic[1]} {graphic[3]}\n{graphic[4]} {graphic[5]}"
+            elif f"{graphic[2]} {graphic[3]}" == "then Chance":
+                graphic_str = f"{graphic[1]} {graphic[2]}\n{graphic[3]} {graphic[4]}"
             else:
                 graphic_str = f"{graphic[0]} {graphic[1]}"
         else:

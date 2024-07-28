@@ -21,6 +21,136 @@ NEEDED DATA BY SERVICE/WIDGET
     -graphic
 - Widget
 
+== Create Short Forecast ==
+skyCondition raw values:
+    int : 0 - 100
+skyCondition parsed values:
+    0 - 12.5:
+        day: sunny
+        night: clear
+    12.6 - 37.5:
+        day: mostly_sunny
+        night: mostly_clear
+    37.6 - 62.5:
+        day: partly_sunny
+        night: partly_cloudy
+    62.6 - 87.5:
+        day/night: mostly_cloudy
+    87.6 - 100:
+        day/night: cloudy
+
+skyCondition values:
+    condition:
+      "sunny",
+      "clear",
+      "mostly_sunny",
+      "mostly_clear",
+      "partly_sunny",
+      "partly_cloudy",
+      "mostly_cloudy",
+      "cloudy"
+
+Weather values:
+    coverage:
+      "areas",
+      "brief",
+      "chance",
+      "definite",
+      "few",
+      "frequent",
+      "intermittent",
+      "isolated",
+      "likely",
+      "numerous",
+      "occasional",
+      "patchy",
+      "periods",
+      "scattered",
+      "slight_chance",
+      "widespread"
+    weather:
+      "blowing_dust",
+      "blowing_sand",
+      "blowing_snow",
+      "drizzle",
+      "fog",
+      "freezing_fog",
+      "freezing_drizzle",
+      "freezing_rain",
+      "freezing_spray",
+      "frost",
+      "hail",
+      "haze",
+      "ice_crystals",
+      "ice_fog",
+      "rain",
+      "rain_showers",
+      "sleet",
+      "smoke",
+      "snow",
+      "snow_showers",
+      "thunderstorms",
+      "volcanic_ash",
+      "water_spouts"
+    intensity:
+      "very_light",
+      "light",
+      "moderate",
+      "heavy"
+    attributes:
+      "damaging_wind",
+      "dry_thunderstorms",
+      "flooding",
+      "gusty_wind",
+      "heavy_rain",
+      "large_hail",
+      "small_hail",
+      "tornadoes"
+
+
+parsed_weather_dict:
+    if entry is PT3H, will copy entry 3x, for hour 04, 05, 06, for hourly forecasts
+    2024-07-29T21:00:00+00:00/PT3H
+    YYYY-MM-DD[T]HH:MM:SS+UTC+#/Period[T]3Hour
+    split('T') = [2024-07-29, 21:00:00+00:00/P, 3H]
+    {'2024-07-29': {
+        '01': {
+            {'0': {
+                'coverage': 'chance',
+                'weather': 'thunderstorms',
+                'intensity': null,
+                'visibility': null
+            }, '1': {
+                'coverage': 'chance',
+                'weather': 'rain_showers',
+                'intensity': 'light',
+                'visibility': null
+            }},
+        '02': {...}...}}}
+
+
+"weather"" {
+      "values": [
+        {
+          "validTime": "2024-07-27T20:00:00+00:00/P2DT1H",
+          "value": [
+            {
+              "coverage": null,
+              "weather": null,
+              "intensity": null,
+              "visibility": {
+                "unitCode": "wmoUnit:km",
+                "value": null
+              },
+              "attributes": [
+
+              ]
+            }
+          ]
+        },
+
+
+
 
 Message Handlers - Objects that services start threads of (their run() methods). Use inbound_queue[] and outbound_queue[]
     inbound_message_handler

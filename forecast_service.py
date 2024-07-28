@@ -4,10 +4,12 @@ import forecast_api_manager
 import threading
 import time
 import json
+from datetime import datetime
 import eel
 
 # Will use sample request and will not request from OpenUV API, using sample response instead
-IS_TEST = False
+IS_TEST = True
+DATETIME = datetime
 
 class ForecastController:
     """
@@ -46,6 +48,8 @@ class ForecastController:
         """
         The main loop of the forecast service.
         """
+        #self.parse_weather(None)
+        #exit()
         while True:
             try:
                 if self.is_test:
@@ -262,8 +266,10 @@ class ForecastController:
         fc_data = forecast_api_manager.get_json_from_url(self.forecast_gridpoints_url)
         daily_arr = []
         pd = fc_data["properties"]
-        #sky_dict = self.parse_sky_cover_condition(pd["skyCover"])
-        #weather_dict = self.parse_weather(pd["weather"])
+        sky_arr = self.parse_sky_cover(pd["skyCover"])
+        weather_arr = self.parse_weather(pd["weather"])
+        self.parse_custom_forecast(sky_arr, weather_arr)
+
         for _ in pd["weather"]["values"]:
             break
         if self.temp_unit == 'F':
@@ -287,27 +293,38 @@ class ForecastController:
         self.points_data_daily_dict = daily_arr
         self.points_data_widget_dict = widget_dict
 
-    def parse_sky_cover_condition(self, dict):
+    def parse_custom_forecast(self, sky, weather):
+        """
+        Creates a custom forecast based on skyCondition and weather data.
+        Will create two forecasts, one will be a graphic id, and the other will be for display as shortForecast.
+
+        Does not return anything but sets self.custom_hourly_graphic_forecast and self.custom_hourly_short_forecast.
+        Will probably set it as a dict
+
+        Parameters:
+        -----------
+        sky : arr
+            The skyCover parsed forecast.
+        weather : arr
+            The weather parsed forecast.
+        """
+
+
+
+    def parse_sky_cover(self, sky_condition_dict):
         """
         When passed the skyCover dictionary of the points json, passed back relevant interpreted information.
-        "values": [
-            {
-              "validTime": "2024-07-22T14:00:00+00:00/PT1H",
-              "value": 100
-            }, {...}...]
+
+        Parameters:
+        -----------
         """
-        skyCover_list = []
-        current_day_list = []
-        current_day = ""
-        for hrDict in dict["values"]:
-            sky_datetime, sky_offset = hrDict["validTime"].split('/')
-            sky_date, sky_time = sky_datetime.split('T')
-            sky_date, sky_time = sky_date.split('-'), sky_time.split('+')
-            hour_dict = {"year": sky_date[0], "month": sky_date[1], "day": sky_date[2], "hour": sky_time[0],
-                         "utc_offset": sky_time[1], "duration": sky_offset}
+        sky_cover_arr = []
+        for hrDict in sky_condition_dict["values"]:
+            datetime_obj, time_period = self.parse_iso_time(hrDict["validTime"])
+            hour_dict = {"dateTime": datetime_obj, "timePeriodInHr": time_period}
             cloud_cover = hrDict["value"]
 
-            if 5 <= int(hour_dict["hour"][:2]) <= 20:
+            if 5 <= int(datetime_obj.hour) <= 20:
                 is_day = True
             else:
                 is_day = False
@@ -334,34 +351,74 @@ class ForecastController:
             else:
                 condition = -1
             hour_dict.update({"condition": condition})
-            if hour_dict["day"] == current_day:
-                current_day_list.append(hour_dict)
-            else:
-                current_day = hour_dict["day"]
-                skyCover_list.append(current_day_list)
-                current_day_list = [hour_dict]
-        skyCover_list.append(current_day_list)
-        skyCover_list.pop(0)
-        # print("skyCover_list: ", skyCover_list)
-        return skyCover_list
+            sky_cover_arr.append({datetime_obj: hour_dict})
+        return sky_cover_arr
 
     def parse_weather(self, weather_dict):
         """
-        Parses the weather dict from the gridpoints json.
+        Parses the weather section of the gridpoints dict.
+        - "A value object representing expected weather phenomena." -
+        Specifically, takes each of the values within the array, of which there can be up to 7*24, and each value
+        can hold multiple sub values, and records them all. Each value is broken into an effective time period,
+        typically 1h, 3h, 6h, 12h, 1d, 2d, etc.
+
+        Parameters:
+        -----------
+        weather_dict
+            The value of the weather: values : arr json pair from the gridpoints json.
+
+        Returns:
+        --------
+        parsed_weather_arr = [{datetime_obj: {0: {'coverage': 'slight_chance', 'weather': 'thunderstorms',
+        'intensity': 'light', 'attributes': ['small_hail, 'flooding'], 'dateTime': dateTimeObj, 'timePeriodInHr': 12}]
         """
-        ret_weather_dict = {}
-        i = 0
-        for dDict in weather_dict["values"]:
-            datetime, duration = dDict["validTime"].split('/')
-            date, sky_time = datetime.split('T')
-            date, sky_time = date.split('-'), sky_time.split('+')
-            dict = {"year": date[0], "month": date[1], "day": date[2], "hour": sky_time[0],
-                    "utc_offset": sky_time[1], "duration": duration, "coverage": dDict["value"][0]["coverage"],
-                    "weather": dDict["value"][0]["weather"], "intensity": dDict["value"][0]["intensity"],
-                    "visibility": dDict["value"][0]["visibility"]["value"], "attributes": dDict["value"][0]["attributes"]}
-            ret_weather_dict.update({i: dict})
-            i += 1
-        return ret_weather_dict
+        parsed_weather_arr = []
+        # Iterates through values array
+        for entry in weather_dict["values"]:
+            weather_data_entry_dict = {}
+            i = 0
+            valid_time, period_time_hr = self.parse_iso_time(entry["validTime"])
+            for entry_value in entry["value"]:
+                w_dict = {"coverage": entry_value["coverage"], "weather": entry_value["weather"],
+                          "intensity": entry_value["intensity"], "attributes": entry_value['attributes'],
+                          "dateTime": valid_time, "timePeriodInHr": period_time_hr}
+                weather_data_entry_dict.update({i: w_dict})
+                i += 1
+            parsed_weather_arr.append({valid_time: weather_data_entry_dict})
+        return parsed_weather_arr
+
+    def parse_iso_time(self, incoming_time):
+        """
+        Parses a passed ISO format time string into a datetime object, and an int representing the period duration.
+
+        Parameters:
+        -----------
+        validTime : str
+            The ISO format time string. 'YYYY:DD:MM T HH:MM:SS+UTCOFFSET/P0DT0H0M'
+
+        Returns:
+        --------
+        valid_time : datetime obj
+            DateTime object containing the corresponding date data.
+        period_time_hr : int
+            Integer representing the hours of duration the time period is representing.
+        """
+        input_time, time_period = incoming_time.split('/')
+        # input_time, time_period = '2024-07-29T21:00:00+00:00/P2DT11H'.split('/')
+        valid_time = DATETIME.fromisoformat(input_time)
+        # Converts period into hours - 'PT3H' or 'P1D5TH' - ignores minutes
+        period_time_hr = 0
+        # sets day_val to result
+        if day_val := time_period.find('D'):
+            if day_val != -1:
+                # adds number of days * 24h to period_time_hr counter
+                period_time_hr += (int(time_period[day_val - 1]) * 24)
+        if hour_val := time_period.find('H'):
+            if hour_val != -1:
+                period_time_hr += (int(time_period[hour_val - 1]))
+                if time_period[hour_val - 2] != 'T':
+                    period_time_hr += (int(time_period[hour_val - 2]) * 10)
+        return valid_time, period_time_hr
 
     def parse_alert_forecast(self):
         """
