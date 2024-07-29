@@ -22,6 +22,7 @@ let isMouseHover = false;
 let isHighlight = false;
 let validClick = false;
 let lastLocation = "";
+let lastSearch = "";
 
 // Event listeners for pop up tabs
 // Current Condition Tab Controller
@@ -128,7 +129,9 @@ dt1.addEventListener("mouseleave", event => {
 }, true);
 dt1.onclick = function() {
     if (validClick === true) {
-        updateSearchQuery(dt1.innerText, "click");
+        lastSearch = dt1.innerText;
+        wipeDropdown();
+        updateSearchQuery(lastSearch, "click");
     }
 }
 
@@ -151,7 +154,9 @@ dt2.addEventListener("mouseleave", event => {
 }, true);
 dt2.onclick = function() {
     if (validClick === true) {
-        updateSearchQuery(dt2.innerText, "click");
+        lastSearch = dt2.innerText;
+        wipeDropdown();
+        updateSearchQuery(lastSearch, "click");
     }
 }
 
@@ -175,7 +180,9 @@ dt3.addEventListener("mouseleave", event => {
 }, true);
 dt3.onclick = function() {
     if (validClick === true) {
-        updateSearchQuery(dt3.innerText, "click");
+        lastSearch = dt3.innerText;
+        wipeDropdown();
+        updateSearchQuery(lastSearch, "click");
     }
 }
 
@@ -199,7 +206,9 @@ dt4.addEventListener("mouseleave", event => {
 }, true);
 dt4.onclick = function() {
     if (validClick === true) {
-        updateSearchQuery(dt4.innerText, "click");
+        lastSearch = dt4.innerText;
+        wipeDropdown();
+        updateSearchQuery(lastSearch, "click");
     }
 }
 
@@ -223,7 +232,9 @@ dt5.addEventListener("mouseleave", event => {
 }, true);
 dt5.onclick = function() {
     if (validClick === true) {
-        updateSearchQuery(dt5.innerText, "click");
+        lastSearch = dt5.innerText;
+        wipeDropdown();
+        updateSearchQuery(lastSearch, "click");
     }
 }
 
@@ -305,6 +316,15 @@ eel.expose(updateSearchLocationDisplay);
 function updateSearchLocationDisplay(new_location) {
     //eel.print_in_python("updateLocationDisplay");
     document.getElementById('input_search').value = new_location;
+}
+
+// Clears the dropdown to all ""
+function wipeDropdown() {
+    document.getElementById('dropdown_text_1_search').innerText = "";
+    document.getElementById('dropdown_text_2_search').innerText = "";
+    document.getElementById('dropdown_text_3_search').innerText = "";
+    document.getElementById('dropdown_text_4_search').innerText = "";
+    document.getElementById('dropdown_text_5_search').innerText = "";
 }
 
 // Updates Daily Rain Percentage %

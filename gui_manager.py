@@ -451,9 +451,19 @@ def update_daily_weather_condition_graphic(day=0, graphic='sunny', type='day'):
         "Isolated Showers": 'light_rain', "Showers and Thunderstorms": 'thunderstorm_rain',
         "Showers Thunderstorms": 'thunderstorm_rain', "Chance Showers": 'light_rain',
         "Clear": 'sunny', "Mostly Clear": 'sunny', "Smoke then Mostly Clear": 'haze', "Haze": 'haze',
-        "Smoke then\nMostly Clear": 'haze', "Areas Of Smoke": 'haze', "Haze then Mostly Clear": 'haze',
-        "Areas of Fog": 'fog', "Areas Of Fog": 'fog', "Chance Showers\nAnd Thunderstorms": 'thunderstorm_rain',
-        "Chance Showers And Thunderstorms": 'thunderstorm_rain', "Chance Rain Showers": 'heavy_rain'}
+        "Areas Of Smoke": 'haze', "Areas of Smoke": 'haze',
+        "Haze then Mostly Clear": 'haze', "Areas of Fog": 'fog', "Areas Of Fog": 'fog',
+        "Chance Showers And Thunderstorms": 'thunderstorm_rain',
+        "Chance Rain Showers": 'heavy_rain', "Patchy Fog then Mostly Sunny": 'haze',
+        "Mostly Sunny then Isolated Showers And Thunderstorms": 'partly_cloudy',
+        "Slight Chance Showers And Thunderstorms": 'thunderstorm_rain',
+        "Patchy Fog then Partly Sunny": 'fog', "Slight Chance Light Rain": 'light_rain',
+        "Slight Chance Showers And Thunderstorms then Chance Showers And Thunderstorms": 'thunderstorm_rain',
+        "Slight Chance Showers And Thunderstorms then Sunny": 'thunderstorm_rain',
+        "Showers And Thunderstorms Likely": 'thunderstorm_rain',
+        "Partly Sunny then Chance Showers And Thunderstorms": 'thunderstorm_rain',
+        "Slight Chance Rain Showers then Chance Showers And Thunderstorms": 'thunderstorm_rain'
+    }
     if graphic_str in short_forecast_to_graphic_dict:
         graphic_name = short_forecast_to_graphic_dict[graphic_str]
     else:
@@ -477,6 +487,7 @@ def correct_condition_terms(graphic):
     if type(graphic) != str:
         for _ in graphic:
             graphic_str += f"{str(_)} "
+    graphic_str = graphic_str[:-1]
     return graphic_str
 
 
