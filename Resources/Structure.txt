@@ -69,8 +69,8 @@ Weather values:
       "slight_chance",
       "widespread"
     weather:
-      "blowing_dust",
-      "blowing_sand",
+      "blowing_dust",   #
+      "blowing_sand",   #
       "blowing_snow",
       "drizzle",
       "fog",
@@ -78,20 +78,20 @@ Weather values:
       "freezing_drizzle",
       "freezing_rain",
       "freezing_spray",
-      "frost",
+      "frost",          #
       "hail",
       "haze",
-      "ice_crystals",
-      "ice_fog",
+      "ice_crystals",   #
+      "ice_fog",        #
       "rain",
       "rain_showers",
       "sleet",
-      "smoke",
+      "smoke",          #
       "snow",
       "snow_showers",
       "thunderstorms",
-      "volcanic_ash",
-      "water_spouts"
+      "volcanic_ash",   #
+      "water_spouts"    #
     intensity:
       "very_light",
       "light",

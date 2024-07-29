@@ -8,7 +8,7 @@ from datetime import datetime
 import eel
 
 # Will use sample request and will not request from OpenUV API, using sample response instead
-IS_TEST = True
+IS_TEST = False
 DATETIME = datetime
 
 class ForecastController:
@@ -42,7 +42,7 @@ class ForecastController:
         self.inbound_queue = []
         self.temp_unit = 'F'
         self.is_test = IS_TEST
-        self.disable_uv_api = False
+        self.disable_uv_api = True
 
     def run(self):
         """
@@ -268,7 +268,7 @@ class ForecastController:
         pd = fc_data["properties"]
         sky_arr = self.parse_sky_cover(pd["skyCover"])
         weather_arr = self.parse_weather(pd["weather"])
-        self.parse_custom_forecast(sky_arr, weather_arr)
+        self.forecast_generator(sky_arr, weather_arr)
 
         for _ in pd["weather"]["values"]:
             break
@@ -293,7 +293,7 @@ class ForecastController:
         self.points_data_daily_dict = daily_arr
         self.points_data_widget_dict = widget_dict
 
-    def parse_custom_forecast(self, sky, weather):
+    def forecast_generator(self, sky, weather):
         """
         Creates a custom forecast based on skyCondition and weather data.
         Will create two forecasts, one will be a graphic id, and the other will be for display as shortForecast.
@@ -305,10 +305,142 @@ class ForecastController:
         -----------
         sky : arr
             The skyCover parsed forecast.
+            [{'dateTime': datetime, 'timePeriodInHr': time_period', 'condition': condition}, {}...]
         weather : arr
             The weather parsed forecast.
+            [{0: {'coverage': 'slight_chance', 'weather': 'thunderstorms', 'intensity': 'light',
+            'attributes': ['small_hail', 'flooding'], 'dateTime': datetime, 'timePeriodInHr': 12}, 1: {}}, {}...]
         """
+        forecast_list = {}
+        valid_datetime = None
+        for weather_entry in weather:
+            # Loads a given values entry into weather_entry - {0:{}, 1:{}}
+            i = 0
+            period_forecast = {}
+            for weather_sub_entry in weather_entry:
+                entry_value = weather_entry[weather_sub_entry]
+                # Loads a given sub entry into weather_sub_entry - {0:{}}
+                coverage = entry_value["coverage"]
+                weather = entry_value["weather"]
+                intensity = entry_value["intensity"]
+                condition = None
 
+                for sky_entry in sky:
+                    if sky_entry["dateTime"] == entry_value["dateTime"]:
+                        condition = sky_entry["condition"]
+
+                # condition and weather are the only two values that are considered for graphic
+                weather_valid_dict = {"blowing_dust": None, "blowing_sand": None, "blowing_snow": 'snow',
+                "drizzle": 'light_rain', "fog": 'fog', "freezing_fog": 'fog', "freezing_drizzle": 'snow_rain',
+                "freezing_rain": 'snow_rain', "freezing_spray": 'snow_rain', "frost": None, "hail": 'hail',
+                "haze": 'haze', "ice_crystals": None, "ice_fog": 'fog', "rain": 'rain', "rain_showers": 'rain',
+                "sleet": None, "smoke": 'haze', "snow": 'snow', "snow_showers": 'snow_rain',
+                "thunderstorms": 'thunderstorm_rain', "volcanic_ash": None, "water_spouts": None}
+                # Values: None, snow, fog, snow_rain, haze, hail, rain, thunderstorm_rain, light_rain
+                # IM SORRY I KNOW THIS IS SO BAD
+                forecast_str = None
+                forecast_graphic = None
+                if weather:
+                    if weather_valid_dict[weather] is None:
+                        forecast_str = condition
+                        forecast_graphic = condition
+                    elif weather_valid_dict[weather] == 'snow':
+                        if condition == ("sunny" or "clear"):
+                            forecast_str = 'Sunny and Snowing'
+                            forecast_graphic = 'sunny_snow'
+                        elif condition == ("mostly_sunny" or "mostly_clear"):
+                            forecast_str = 'Mostly Sunny and Snowing'
+                            forecast_graphic = 'part_sunny_snow'
+                        elif condition == ("partly_sunny" or "partly_cloudy"):
+                            forecast_str = 'Partly Sunny and Snowing'
+                            forecast_graphic = 'part_sunny_snow'
+                        elif condition == "cloudy":
+                            forecast_str = 'Snowing'
+                            forecast_graphic = 'snow'
+                    elif weather_valid_dict[weather] == ('rain' or 'light_rain'):
+                        if condition == ("sunny" or "clear"):
+                            forecast_str = 'Sunny and Raining'
+                            forecast_graphic = 'sunny_rain'
+                        elif condition == ("mostly_sunny" or "mostly_clear"):
+                            forecast_str = 'Mostly Sunny and Raining'
+                            forecast_graphic = 'part_sunny_rain'
+                        elif condition == ("partly_sunny" or "partly_cloudy"):
+                            forecast_str = 'Partly Sunny and Raining'
+                            forecast_graphic = 'part_sunny_rain'
+                        elif condition == "cloudy":
+                            forecast_str = 'Raining'
+                            forecast_graphic = 'rain'
+                    elif weather_valid_dict[weather] == 'snow_rain':
+                        if condition == ("sunny" or "clear"):
+                            forecast_str = 'Sunny with Freezing Rain'
+                            forecast_graphic = 'sunny_snow_rain'
+                        elif condition == ("mostly_sunny" or "mostly_clear"):
+                            forecast_str = 'Mostly Sunny with Freezing Rain'
+                            forecast_graphic = 'part_sunny_snow_rain'
+                        elif condition == ("partly_sunny" or "partly_cloudy"):
+                            forecast_str = 'Partly Sunny with Freezing Rain'
+                            forecast_graphic = 'part_sunny_snow_rain'
+                        elif condition == "cloudy":
+                            forecast_str = 'Overcast with Freezing Rain'
+                            forecast_graphic = 'snow_rain'
+                    elif weather_valid_dict[weather] == 'thunderstorm_rain':
+                        if condition == ("sunny" or "clear"):
+                            forecast_str = 'Sunny with Thunderstorms'
+                            forecast_graphic = 'sunny_thunderstorm'
+                        elif condition == ("mostly_sunny" or "mostly_clear"):
+                            forecast_str = 'Mostly Sunny with Thunderstorms'
+                            forecast_graphic = 'part_sunny_thunderstorm'
+                        elif condition == ("partly_sunny" or "partly_cloudy"):
+                            forecast_str = 'Partly Sunny with Thunderstorms'
+                            forecast_graphic = 'part_sunny_thunderstorms'
+                        elif condition == "cloudy":
+                            forecast_str = 'Overcast Thunderstorms'
+                            forecast_graphic = 'thunderstorms'
+                    elif weather_valid_dict[weather] == 'hail':
+                        if condition == ("sunny" or "clear"):
+                            forecast_str = 'Sunny with Hail'
+                            forecast_graphic = 'sunny_hail'
+                        elif condition == ("mostly_sunny" or "mostly_clear"):
+                            forecast_str = 'Mostly Sunny with Hail'
+                            forecast_graphic = 'part_hail'
+                        elif condition == ("partly_sunny" or "partly_cloudy"):
+                            forecast_str = 'Partly Sunny with Hail'
+                            forecast_graphic = 'part_hail'
+                        elif condition == "cloudy":
+                            forecast_str = 'Overcast and Hailing'
+                            forecast_graphic = 'hail'
+                    elif weather_valid_dict[weather] == 'haze':
+                        if condition == ("sunny" or "clear"):
+                            forecast_str = 'Sunny Haze'
+                            forecast_graphic = 'sunny_haze'
+                        elif condition == ("mostly_sunny" or "mostly_clear"):
+                            forecast_str = 'Mostly Sunny Haze'
+                            forecast_graphic = 'part_sunny_haze'
+                        elif condition == ("partly_sunny" or "partly_cloudy"):
+                            forecast_str = 'Partly Sunny Haze'
+                            forecast_graphic = 'part_sunny_haze'
+                        elif condition == "cloudy":
+                            forecast_str = 'Cloudy Haze'
+                            forecast_graphic = 'haze'
+                    elif weather_valid_dict[weather] == 'fog':
+                        if condition == ("sunny" or "clear"):
+                            forecast_str = 'Sunny Fog'
+                            forecast_graphic = 'sunny_fog'
+                        elif condition == ("mostly_sunny" or "mostly_clear"):
+                            forecast_str = 'Mostly Sunny and Foggy'
+                            forecast_graphic = 'part_sunny_fog'
+                        elif condition == ("partly_sunny" or "partly_cloudy"):
+                            forecast_str = 'Partly Sunny and Foggy'
+                            forecast_graphic = 'part_sunny_fog'
+                        elif condition == "cloudy":
+                            forecast_str = 'Overcast and Foggy'
+                            forecast_graphic = 'fog'
+
+                period_forecast.update({i: {"forecast_str": forecast_str, "forecast_graphic": forecast_graphic,
+                                        "datetime": entry_value["dateTime"], "period": entry_value["timePeriodInHr"]}})
+                valid_datetime = entry_value["dateTime"]
+            forecast_list.update({valid_datetime: period_forecast})
+        print("AAA", forecast_list)
 
 
     def parse_sky_cover(self, sky_condition_dict):
@@ -351,7 +483,7 @@ class ForecastController:
             else:
                 condition = -1
             hour_dict.update({"condition": condition})
-            sky_cover_arr.append({datetime_obj: hour_dict})
+            sky_cover_arr.append(hour_dict)
         return sky_cover_arr
 
     def parse_weather(self, weather_dict):
@@ -384,7 +516,7 @@ class ForecastController:
                           "dateTime": valid_time, "timePeriodInHr": period_time_hr}
                 weather_data_entry_dict.update({i: w_dict})
                 i += 1
-            parsed_weather_arr.append({valid_time: weather_data_entry_dict})
+            parsed_weather_arr.append(weather_data_entry_dict)
         return parsed_weather_arr
 
     def parse_iso_time(self, incoming_time):
@@ -441,21 +573,9 @@ class ForecastController:
                           "urgency": pd["urgency"], "event": pd["event"], "senderName": pd["senderName"],
                           "headline": pd["headline"], "description": pd["description"], "instruction": pd["instruction"],
                           "response": pd["response"]}
-            parsed_description = self.parse_alert_description(pd["description"])
-            alert_data.update({"parsed_description": parsed_description})
             self.active_alert_dict = alert_data
         else:
             self.active_alert_dict = None
-
-    def parse_alert_description(self, description):
-        """
-        Parses the alert description.
-        """
-        desc = description.split('*')
-        print("p1", f"{desc[1]}{desc[2]}{desc[3]}{desc[4]}")
-        desc = f"{desc[1]}{desc[2]}{desc[3]}{desc[4]}"
-
-        return desc
 
     def parse_openuv_data(self):
         """

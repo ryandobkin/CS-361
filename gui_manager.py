@@ -112,9 +112,12 @@ class GuiMessageController:
             hourly_forecast = forecast["hourly_forecast"]
             widget_forecast = forecast["widget_forecast"]
             alert_forecast = forecast["alert_forecast"]
+            if "location" in forecast_message:
+                update_location(forecast_message["location"])
             self.update_daily_forecasts(daily_forecast)
             self.update_widget_forecasts(widget_forecast)
             self.update_alert_forecast(alert_forecast)
+            print("UPDATE_COMPLETE")
         except KeyboardInterrupt as e:
             print("UpdateForecast Error:", e)
 
@@ -133,7 +136,6 @@ class GuiMessageController:
                 if day == 6:
                     break
                 day += 1
-            print("UPDATE COMPLETE")
         except KeyboardInterrupt as e:
             print("UpdateDailyForecasts Error:", e)
 
@@ -147,7 +149,6 @@ class GuiMessageController:
         update_daily_weather_condition_graphic(0, split_sf, 'now')
         update_now(wf['temperature'], wf['maxTemperature'], wf['minTemperature'], correct_condition_terms(wf['shortForecast'].split(' ')), wf['apparentTemperature'])
 
-
     def update_alert_forecast(self, alert_forecast):
         """
         Updates the alert widget with incoming information when called.
@@ -160,7 +161,7 @@ class GuiMessageController:
             effective_times = f"Effective {time_eff} through {time_exp}"
             alert_body_full = f"{effective_times}\n{af['headline']}\n"
             # update_alert(True, af["event"], alert_body_full, af["senderName"])
-            updated_description = af["parsed_description"]
+            updated_description = af["description"]
             updated_description = updated_description.replace('\n\n', '$')
             updated_description = updated_description.replace('\n', ' ')
             updated_description = updated_description.replace('...', ':  ')
@@ -225,7 +226,6 @@ def update_location(new_location=None):
     new_location : str
         The new location to display in the location banner.
     """
-    pass
     eel.updateSearchLocationDisplay(new_location)
 
 
@@ -454,7 +454,10 @@ def update_daily_weather_condition_graphic(day=0, graphic='sunny', type='day'):
         "Smoke then\nMostly Clear": 'haze', "Areas Of Smoke": 'haze', "Haze then Mostly Clear": 'haze',
         "Areas of Fog": 'fog', "Areas Of Fog": 'fog', "Chance Showers\nAnd Thunderstorms": 'thunderstorm_rain',
         "Chance Showers And Thunderstorms": 'thunderstorm_rain', "Chance Rain Showers": 'heavy_rain'}
-    graphic_name = short_forecast_to_graphic_dict[graphic_str]
+    if graphic_str in short_forecast_to_graphic_dict:
+        graphic_name = short_forecast_to_graphic_dict[graphic_str]
+    else:
+        graphic_name = 'sunny'
     graphic_directory = './Images/' + graphic_name + '_graphic.svg'
     width, height = get_graphic_dimensions(graphic_name)
     offsetx, offsety = get_graphic_offset(graphic_name, 100, 80)
@@ -467,41 +470,13 @@ def update_daily_weather_condition_graphic(day=0, graphic='sunny', type='day'):
 
 
 def correct_condition_terms(graphic):
+    """
+    Currently deprecated. Working on generating foreecast myself so I wont have to rely on shortForecast.
+    """
+    graphic_str = ""
     if type(graphic) != str:
-        if len(graphic) == 2:
-            if graphic[1] == 'And':
-                graphic_str = f"{graphic[0]}"
-            else:
-                graphic_str = f"{graphic[0]} {graphic[1]}"
-        elif len(graphic) > 2:
-            if graphic[1] == 'And':
-                graphic_str = f"{graphic[0]} and {graphic[2]}"
-            elif graphic[0] == 'Areas':
-                if len(graphic) == 3:
-                    graphic_str = f"{graphic[0]} {graphic[1]} {graphic[2]}"
-                elif len(graphic) > 3:
-                    graphic_str = f"{graphic[2]} {graphic[3]}\n{graphic[4]} {graphic[5]}"
-                else:
-                    graphic_str = f"{graphic[0]} {graphic[1]} {graphic[2]}"
-            elif graphic[1] == 'then':
-                graphic_str = f"{graphic[0]} {graphic[1]} {graphic[2]} {graphic[3]}"
-            elif graphic[0] == 'Chance':
-                graphic_str = f"{graphic[0]} {graphic[1]}\n{graphic[2]} {graphic[3]}"
-            elif f"{graphic[0]} {graphic[1]}" == "Slight Chance":
-                if len(graphic) >= 5:
-                    graphic_str = f"{graphic[1]} {graphic[2]}\n{graphic[3]} {graphic[4]}"
-                elif len(graphic) == 4:
-                    graphic_str = f"{graphic[1]} {graphic[2]} {graphic[3]}"
-            elif f"{graphic[1]} {graphic[2]} {graphic[3]}" == "then Slight Chance":
-                graphic_str = f"{graphic[0]} {graphic[1]} {graphic[3]}\n{graphic[4]} {graphic[5]}"
-            elif f"{graphic[2]} {graphic[3]}" == "then Chance":
-                graphic_str = f"{graphic[1]} {graphic[2]}\n{graphic[3]} {graphic[4]}"
-            else:
-                graphic_str = f"{graphic[0]} {graphic[1]}"
-        else:
-            graphic_str = f"{graphic[0]}"
-    else:
-        graphic_str = graphic
+        for _ in graphic:
+            graphic_str += f"{str(_)} "
     return graphic_str
 
 
