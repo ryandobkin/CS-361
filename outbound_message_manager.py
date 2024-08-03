@@ -1,45 +1,27 @@
-import socket
+import zmq
 import eel
 import json
 import threading
 
 
-class OutboundMessageManager:
+def send_message(message, socket_port):
     """
-    Manges outbound messages for services.
+    Sends message to designated socket
     """
-    def __init__(self, service):
-        self.service = service
-        self.outbound_queue = service.outbound_queue
-        self.inbound_queue = service.inbound_queue
-
-    def run(self) -> None:
-        """
-        Starts the client loop, which runs indefinitely.
-        It continuously dequeues messages from the outbound message queue and sends them to the recipient nodes.
-        """
-        while True:
-            if len(self.outbound_queue) > 0:
-                message = self.outbound_queue.pop(0)
-                if message:
-                    self.send_message(message)
-            eel.sleep(.1)
-
-    def send_message(self, message):
-        """
-        Sends message to designated socket
-        """
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-            try:
-                print(message["socket"])
-                ip, port = message["socket"]
-                client_socket.connect((ip, port))
-                print(f"[Outbound] Connected to ({ip}, {port})")
-                print(f"[Outbound] Message: {message}")
-                client_socket.sendall(json.dumps(message).encode())
-                print(f"[Outbound] Sent message: {message}")
-            except ConnectionRefusedError:
-                print("[Outbound] ConnectionRefusedError")
-            except AttributeError:
-                print("[Outbound] AttributeError")
+    context = zmq.Context()
+    socket = context.socket(zmq.REQ)
+    socket.connect(f"tcp://localhost:{socket_port}")
+    try:
+        #print(f"[Outbound] Connected to ({socket})")
+        socket.send(json.dumps(message).encode())
+        #print(f"[Outbound] Sent message: {message}")
+        message = socket.recv()
+        #print(f"[Outbound] Received reply: {message}")
+        context.destroy()
+        print("outbound req/res complete")
+        return json.loads(message.decode())
+    except ConnectionRefusedError:
+        print("[Outbound] ConnectionRefusedError")
+    except AttributeError:
+        print("[Outbound] AttributeError")
 

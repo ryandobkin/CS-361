@@ -1,24 +1,27 @@
-from inbound_message_manager import InboundMessageManager
-from outbound_message_manager import OutboundMessageManager
+import inbound_message_manager
+import outbound_message_manager
 import forecast_api_manager
 import threading
 import time
 import json
 from datetime import datetime
 import eel
+import requests
 
 # Will use sample request and will not request from OpenUV API, using sample response instead
 IS_TEST = False
 DATETIME = datetime
+
 
 class ForecastController:
     """
     The main manager object for the forecast service.
     """
     def __init__(self):
-        self.ip = '127.0.0.2'
-        self.port = 23457
-        self.socket_list = {"frontend_manager": ["127.0.0.1", 23456]}
+        self.socket_port_in = '5556'
+        self.socket_port_c_to_f_microservice = '5555'
+        self.socket_port_api_interface_microservice = '5559'
+        self.socket_port_gui_manager = '5558'
         self.forecast_gridpoints_url = None
         self.points_json = None
         self.forecast_daily_url = None
@@ -40,7 +43,6 @@ class ForecastController:
         self.last_request = None
         self.outbound_queue = []
         self.inbound_queue = []
-        self.temp_unit = 'F'
         self.is_test = IS_TEST
         self.disable_uv_api = True
 
@@ -61,10 +63,9 @@ class ForecastController:
                                                "service": "forecast", "data": self.test_cord_list["Palm Springs"]})
                 if len(self.inbound_queue) > 0:
                     self.last_request = self.inbound_queue.pop(0)
-                    if self.last_request["type"] == "request" and self.last_request["service"] == "forecast":
+                    if self.last_request["service"] == "forecast":
                         self.get_general_weather_json(self.last_request)
                         self.get_general_forecast_data(self.points_json)
-                        #self.get_general_hourly_forecast_data(self.)
                         self.get_openuv_data()
                         self.parse_daily_forecast()
                         self.parse_gridpoints_forecast()
@@ -73,7 +74,7 @@ class ForecastController:
                         self.parse_alert_forecast()
                         self.update_gui()
                         #self.print_all()
-                time.sleep(0.5)
+                time.sleep(0.1)
             except KeyboardInterrupt:
                 print("Error")
                 exit(0)
@@ -90,14 +91,19 @@ class ForecastController:
             print(i, _, '\n')
             i += 1
 
+    def get_json_from_url(self, url):
+        return requests.get(url).json()
+
     def update_gui(self):
         """
         Updates the GUI manager by creating message with update data and sending through frontend_manager
         """
         max_min_arr = []
-        for _ in self.points_data_daily_dict:
-            max_min_arr.append({"maxTemperature": _['maxTemperature'], "minTemperature": _['minTemperature']})
+        for _ in range(7):
+            max_min_arr.append({"maxTemperature": self.points_data_daily_dict[f'maxTemperature_{_}'],
+                                "minTemperature": self.points_data_daily_dict[f'minTemperature_{_}']})
         outbound_daily_forecast_dict = {}
+        print("max_min_arr:", max_min_arr)
         daily_arr = [self.forecast_daily_dict[0]]
         for daily_dict in self.forecast_daily_dict:
             if daily_dict["isDaytime"] is True and daily_dict != daily_arr[0]:
@@ -105,8 +111,8 @@ class ForecastController:
         for _ in range(7):
             daily_update = {
                 f"day_{_}": {
-                     "maxTemperature": self.points_data_daily_dict[_]['maxTemperature'],
-                     "minTemperature": self.points_data_daily_dict[_]['minTemperature'],
+                     "maxTemperature": self.points_data_daily_dict[f'maxTemperature_{_}'],
+                     "minTemperature": self.points_data_daily_dict[f'minTemperature_{_}'],
                      "name": daily_arr[_]['name'],
                      "startTime": daily_arr[_]['startTime'],
                      "endTime": daily_arr[_]['endTime'],
@@ -153,8 +159,8 @@ class ForecastController:
             "now": {
                 "temperature": self.forecast_hourly_dict[0]['temperature'],
                 "apparentTemperature": self.points_data_widget_dict['apparentTemperature'],
-                "maxTemperature": self.points_data_daily_dict[0]['maxTemperature'],
-                "minTemperature": self.points_data_daily_dict[0]['minTemperature'],
+                "maxTemperature": max_min_arr[0][f'maxTemperature'],
+                "minTemperature": max_min_arr[0][f'minTemperature'],
                 "shortForecast": self.forecast_hourly_dict[0]['shortForecast']}
         }
         update_data = {
@@ -162,12 +168,18 @@ class ForecastController:
             "hourly_forecast": outbound_hourly_forecast_dict,
             "widget_forecast": outbound_widget_forecast_dict,
             "alert_forecast": self.active_alert_dict}
-        outbound_update_message = {"socket": self.socket_list["frontend_manager"],
-                                   "type": "response", "service": "forecast",
+        outbound_update_message = {"service": "forecast",
                                    "data": update_data}
-        self.outbound_queue.append(outbound_update_message)
-        outbound_update_message = json.dumps(outbound_update_message)
-        print(outbound_update_message)
+        ack = outbound_message_manager.send_message(outbound_update_message, self.socket_port_gui_manager)
+        print("Forecast Update ACK", ack)
+
+    def convert_c_to_f(self, conversion_dict):
+        """
+        Sends an array of data to be converted from degc to degf.
+        """
+        converted_dict = outbound_message_manager.send_message(conversion_dict, self.socket_port_c_to_f_microservice)
+        print(f"Original dict: {conversion_dict}\nConverted dict: {converted_dict}")
+        return converted_dict
 
     def get_general_weather_json(self, incoming_data):
         """
@@ -176,7 +188,8 @@ class ForecastController:
         Sets self.general_weather_json as json and self.grid_id as gridId (i.e. KLWX)
         """
         coordinates = incoming_data["data"]
-        self.points_json = forecast_api_manager.request_weather_json_general(coordinates)
+        cord_req = {"service": "nws", "data": coordinates}
+        self.points_json = outbound_message_manager.send_message(cord_req, self.socket_port_api_interface_microservice)
         self.lng_lat = coordinates
         return True
 
@@ -184,13 +197,14 @@ class ForecastController:
         """
         Using general weather json, updates several values for weather service.
         """
+        incoming_json = incoming_json["response"]
         self.forecast_gridpoints_url = incoming_json["properties"]["forecastGridData"]
         self.forecast_daily_url = incoming_json["properties"]["forecast"]
         self.forecast_hourly_url = incoming_json["properties"]["forecastHourly"]
         self.grid_id = incoming_json["properties"]["gridId"]
         self.time_zone = incoming_json["properties"]["timeZone"]
         self.radar_station = incoming_json["properties"]["radarStation"]
-        zone_id = forecast_api_manager.get_json_from_url(incoming_json["properties"]["forecastZone"])
+        zone_id = self.get_json_from_url(incoming_json["properties"]["forecastZone"])
         self.zone_id = zone_id["properties"]["id"]
         self.active_alert_url = f"https://api.weather.gov/alerts/active/zone/{self.zone_id}"
 
@@ -203,7 +217,7 @@ class ForecastController:
         [{"temperature: 89, "rain_prob": 30, "wind_speed": "8 mph",
         "short_forecast": "Isolated Showers And Thunderstorms", "long_forecast": "..."}, ...]
         """
-        fc_data = forecast_api_manager.get_json_from_url(self.forecast_daily_url)
+        fc_data = self.get_json_from_url(self.forecast_daily_url)
         daily_data_arr = []
         for _ in range(14):
             prop_data = fc_data["properties"]["periods"][_]
@@ -225,16 +239,20 @@ class ForecastController:
         Updates self.forecast_hourly_dict to:
 
         """
-        fc_data = forecast_api_manager.get_json_from_url(self.forecast_hourly_url)
+        fc_data = self.get_json_from_url(self.forecast_hourly_url)
         hourly_arr = []
         pd_pre = fc_data["properties"]["periods"]
+        dewpoint_dict = {}
         # for _ in pd:
+        for _ in range(24):
+            dewpoint_dict.update({f"dewpoint_hour_{_}": '%.2f'%(pd_pre[_]["dewpoint"]["value"])})
+        converted_dewpoint_dict = self.convert_c_to_f(dewpoint_dict)
         for _ in range(24):
             pd = pd_pre[_]
             hour_dict = {"startTime": pd["startTime"], "endTime": pd["endTime"], "temperature": pd["temperature"],
                          "temperatureUnit": pd["temperatureUnit"],
                          "probabilityOfPrecipitation": pd["probabilityOfPrecipitation"]["value"],
-                         "dewPoint": pd["dewpoint"]["value"], "relativeHumidity": pd["relativeHumidity"]["value"],
+                         "dewPoint": converted_dewpoint_dict[f"dewpoint_hour_{_}"], "relativeHumidity": pd["relativeHumidity"]["value"],
                          "windSpeed": pd["windSpeed"], "windDirection": pd["windDirection"],
                          "shortForecast": pd["shortForecast"]}
             hourly_arr.append(hour_dict)
@@ -263,8 +281,8 @@ class ForecastController:
         https://github.com/weather-gov/api/discussions/453
         Would like to add air quality
         """
-        fc_data = forecast_api_manager.get_json_from_url(self.forecast_gridpoints_url)
-        daily_arr = []
+        fc_data = self.get_json_from_url(self.forecast_gridpoints_url)
+        max_min_dict = {}
         pd = fc_data["properties"]
         sky_arr = self.parse_sky_cover(pd["skyCover"])
         weather_arr = self.parse_weather(pd["weather"])
@@ -272,29 +290,29 @@ class ForecastController:
 
         for _ in pd["weather"]["values"]:
             break
-        if self.temp_unit == 'F':
-            for _ in range(7):
-                daily_dict = {
-                    "maxTemperature": int(pd["maxTemperature"]["values"][_]["value"] * 9/5 + 32),
-                    "minTemperature": int(pd["minTemperature"]["values"][_]["value"] * 9/5 + 32)
-                    }
-                daily_arr.append(daily_dict)
-            widget_dict = {
-                "dewpoint": pd["dewpoint"]["values"][0]["value"] * 9/5 + 32,
-                "relativeHumidity": pd["relativeHumidity"]["values"][0]["value"],
-                "apparentTemperature": pd["apparentTemperature"]["values"][0]["value"] * 9/5 + 32,
-                "windChill": pd["windChill"]["values"][0]["value"],
-                "windDirection": pd["windDirection"]["values"][0]["value"],
-                "windSpeed": pd["windSpeed"]["values"][0]["value"],
-                "windGust": pd["windGust"]["values"][0]["value"],
-                "transportWindSpeed": pd["transportWindSpeed"]["values"][0]["value"],
-                "transportWindDirection": pd["transportWindDirection"]["values"][0]["value"]
-            }
-        self.points_data_daily_dict = daily_arr
+        for _ in range(7):
+            max_min_dict.update({f"maxTemperature_{_}": '%.2f'%(pd["maxTemperature"]["values"][_]["value"])})
+            max_min_dict.update({f"minTemperature_{_}": '%.2f'%(pd["minTemperature"]["values"][_]["value"])})
+        converted_max_min_dict = self.convert_c_to_f(max_min_dict)
+        converted_dew_app = self.convert_c_to_f({"dewpoint": '%.2f'%(pd["dewpoint"]["values"][0]["value"]),
+                             "apparentTemperature": '%.2f'%(pd["apparentTemperature"]["values"][0]["value"])})
+        widget_dict = {
+            "dewpoint": converted_dew_app["dewpoint"],
+            "apparentTemperature": converted_dew_app["apparentTemperature"],
+            "relativeHumidity": pd["relativeHumidity"]["values"][0]["value"],
+            "windChill": pd["windChill"]["values"][0]["value"],
+            "windDirection": pd["windDirection"]["values"][0]["value"],
+            "windSpeed": pd["windSpeed"]["values"][0]["value"],
+            "windGust": pd["windGust"]["values"][0]["value"],
+            "transportWindSpeed": pd["transportWindSpeed"]["values"][0]["value"],
+            "transportWindDirection": pd["transportWindDirection"]["values"][0]["value"]
+        }
+        self.points_data_daily_dict = converted_max_min_dict
         self.points_data_widget_dict = widget_dict
 
     def forecast_generator(self, sky, weather):
         """
+        ---not yet working---
         Creates a custom forecast based on skyCondition and weather data.
         Will create two forecasts, one will be a graphic id, and the other will be for display as shortForecast.
 
@@ -440,8 +458,7 @@ class ForecastController:
                                         "datetime": entry_value["dateTime"], "period": entry_value["timePeriodInHr"]}})
                 valid_datetime = entry_value["dateTime"]
             forecast_list.update({valid_datetime: period_forecast})
-        print("AAA", forecast_list)
-
+        # print("AAA", forecast_list)
 
     def parse_sky_cover(self, sky_condition_dict):
         """
@@ -564,7 +581,7 @@ class ForecastController:
         "headline": "brief description", "description": "extensive description", "instruction": "remain out of water",
         "response": "Avoid"}
         """
-        fc_data = forecast_api_manager.get_json_from_url(self.active_alert_url)
+        fc_data = self.get_json_from_url(self.active_alert_url)
         print(self.active_alert_url)
         if len(fc_data["features"]) != 0:
             pd = fc_data["features"][0]["properties"]
@@ -618,14 +635,9 @@ if __name__ == '__main__':
     forecast_controller = ForecastController()
 
     # Starts the incoming message loop thread
-    inbound_message_manager = InboundMessageManager(forecast_controller)
-    inbound_message_manager_thread = threading.Thread(target=inbound_message_manager.run, daemon=True)
+    InboundMessageManager = inbound_message_manager.InboundMessageManager(forecast_controller)
+    inbound_message_manager_thread = threading.Thread(target=InboundMessageManager.receive_message, daemon=True)
     inbound_message_manager_thread.start()
-
-    # Starts the outgoing message loop thread
-    outbound_message_manager = OutboundMessageManager(forecast_controller)
-    outbound_message_manager_thread = threading.Thread(target=outbound_message_manager.run, daemon=True)
-    outbound_message_manager_thread.start()
 
     forecast_controller.run()
 

@@ -91,7 +91,6 @@ class APIManager:
                                       "origin_data": current_search_query})
 
         else:
-            # print("NO VALID AUTOCOMPLETES")
             self.api_response.append({"service": "autocomplete",
                                       "data": [False],
                                       "origin_data": current_search_query})

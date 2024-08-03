@@ -1,10 +1,11 @@
 import eel
-from inbound_message_manager import InboundMessageManager
-from outbound_message_manager import OutboundMessageManager
+import inbound_message_manager
+import outbound_message_manager
 from gui_api_manager import APIManager
 import threading
 import time
 import json
+import zmq
 
 # Globals
 # NO LONGER ACCURATE WITH .SVGs
@@ -20,12 +21,9 @@ class GuiMessageController:
     Manages inbound/outbound messages, as well as value updates.
     """
     def __init__(self):
-        self.ip = '127.0.0.3'
-        self.port = 23458
-        self.outbound_ip = '127.0.0.1'
-        self.outbound_port = 23456
-        self.socket_list = {"frontend_manager": ["127.0.0.1", 23456]}
-        self.outbound_queue = []
+        self.socket_port_in = '5558'
+        self.socket_port_forecast_service = '5556'
+        self.socket_port_api_interface = '5559'
         self.inbound_queue = []
         self.current_prediction_list = [""]
         self.api_request_list = []
@@ -34,6 +32,7 @@ class GuiMessageController:
         self.start_time = 0
         self.is_test = IS_TEST
         self.current_day_selection = 0
+        self.timer_start = 0
 
     def main(self):
         """
@@ -59,7 +58,7 @@ class GuiMessageController:
                         self.update_forecast(message)
             except KeyboardInterrupt as e:
                 print("Inbound Processing Error:", e)
-            eel.sleep(.25)
+            eel.sleep(.1)
 
     def autocomplete_update_loop(self):
         """
@@ -70,43 +69,42 @@ class GuiMessageController:
             if eel.updateSearchInFocus()() is True:
                 eel.setSearchDropdownOpacity("0.95")
                 recent_search = eel.updateSearchAutocomplete()()
-                if recent_search == "" and self.current_search_term != recent_search:
-                    self.current_search_term = recent_search
-                    search_autocomplete_update()
-                if self.current_search_term != recent_search and recent_search != "":
-                    last_update = time.time()
-                    self.current_search_term = recent_search
-                time_now = time.time()
-                if (time_now - last_update) > 0.15 and last_update != 0:
-                    last_update = 0
-                    search_autocomplete_update(self.current_search_term)
+                if recent_search != 'Search for a City':
+                    if recent_search == "" and self.current_search_term != recent_search:
+                        self.current_search_term = recent_search
+                        search_autocomplete_update()
+                    if self.current_search_term != recent_search and recent_search != "":
+                        last_update = time.time()
+                        self.current_search_term = recent_search
+                    time_now = time.time()
+                    if (time_now - last_update) > 0.1 and last_update != 0:
+                        last_update = 0
+                        search_autocomplete_update(self.current_search_term)
             else:
                 eel.setSearchDropdownOpacity("0")
                 #search_autocomplete_update(None)
             eel.sleep(0.1)
 
-    def update_forecast_request(self):
+    def update_forecast_request(self, request):
         """
         Sends a request to the forecast service via the frontend manager to get updates location data.
         """
-        while len(self.api_response_list) < 1:
-            eel.sleep(.1)
-        geocoding_coordinates = self.api_response_list.pop(0)
-        if geocoding_coordinates["service"] != "geocoding":
-            self.api_response_list.append(geocoding_coordinates)
+        print(request)
+        if request["service"] != "geocoding":
+            # self.api_response_list.append(geocoding_coordinates)
             print("GUI MANAGER UPDATE FORECAST REQUEST - Wrong update message received")
         else:
-            request_message = {"socket": self.socket_list["frontend_manager"],
-                               "type": "request",
-                               "service": "forecast",
-                               "data": geocoding_coordinates["data"]}
-            self.outbound_queue.append(request_message)
+            request_message = {"service": "forecast", "data": request["response"]}
+            ack = outbound_message_manager.send_message(request_message, self.socket_port_forecast_service)
+            self.timer_start = time.time()
+            print("GUI ACK", ack)
 
     def update_forecast(self, forecast_message):
         """
         Calls all relevant services to update GUI based on incoming update forcast JSON message
         """
         try:
+            print(f"Forecast req+res time: {time.time() - self.timer_start}")
             forecast = forecast_message["data"]
             daily_forecast = forecast["daily_forecast"]
             hourly_forecast = forecast["hourly_forecast"]
@@ -117,7 +115,7 @@ class GuiMessageController:
             self.update_daily_forecasts(daily_forecast)
             self.update_widget_forecasts(widget_forecast)
             self.update_alert_forecast(alert_forecast)
-            print("UPDATE_COMPLETE")
+            print(f"Forecast update time: {time.time() - self.timer_start}")
         except KeyboardInterrupt as e:
             print("UpdateForecast Error:", e)
 
@@ -242,6 +240,7 @@ def search_query(query='Default', type="enter"):
     type : str
         The input type. Either "enter", or "click".
     """
+    gmc = gui_message_controller
     print(f"Incoming search query: {query} | type {type}")
     pred_list = gui_message_controller.current_prediction_list
     if type == "enter":
@@ -251,8 +250,7 @@ def search_query(query='Default', type="enter"):
             query_out = {"service": "geocoding",
                          "data": top_query_pred}
             update_location(top_query_pred)
-            gui_message_controller.api_request_list.append(query_out)
-            gui_message_controller.update_forecast_request()
+            gmc.update_forecast_request(outbound_message_manager.send_message(query_out, gmc.socket_port_api_interface))
             return True
         else:
             return False
@@ -262,8 +260,7 @@ def search_query(query='Default', type="enter"):
         query_out = {"service": "geocoding",
                      "data": last_update_hl}
         update_location(last_update_hl)
-        gui_message_controller.api_request_list.append(query_out)
-        gui_message_controller.update_forecast_request()
+        gmc.update_forecast_request(outbound_message_manager.send_message(query_out, gmc.socket_port_api_interface))
         return True
     else:
         return False
@@ -284,48 +281,43 @@ def search_autocomplete_update(partial_query=""):
         autocomplete_query = {"service": "autocomplete",
                               "data": [True],
                               "origin_data": ""}
-        gui_message_controller.api_response_list.append(autocomplete_query)
+        search_display_autocomplete(outbound_message_manager.
+                                    send_message(autocomplete_query, gui_message_controller.socket_port_api_interface))
     else:
         gui_message_controller.start_time = time.time()
         print(f"Updating search autocomplete: {partial_query}")
         autocomplete_query = {"service": "autocomplete",
-                              "data": partial_query}
-        gui_message_controller.api_request_list.append(autocomplete_query)
-    search_display_autocomplete()
+                              "data": partial_query,
+                              "origin_data": partial_query}
+        search_display_autocomplete(outbound_message_manager.
+                                    send_message(autocomplete_query, gui_message_controller.socket_port_api_interface))
 
 
 # SEARCH WIDGET DISPLAY AUTOCOMPLETE OPTIONS
 @eel.expose
-def search_display_autocomplete():
+def search_display_autocomplete(response_inp):
     """
     Updates the dropdown search menu with the autocomplete predictions.
     """
+    gmc = gui_message_controller
     placeholder_text = ""
-    while True:
-        if len(gui_message_controller.api_response_list) > 0:
-            break
-        eel.sleep(0.15)
-    response = gui_message_controller.api_response_list.pop(0)
-    if response["data"][0] is False:
-        response["data"][0] = ""
+    gmc.current_prediction_list = response_inp["response"]
+    if gmc.current_prediction_list[0] is False:
         placeholder_text = "No Data Available"
-    elif response["data"][0] is True:
-        response["data"][0] = ""
-    gui_message_controller.current_prediction_list = response["data"]
+        gmc.current_prediction_list[0] = ""
     display_list = ["", "", "", "", ""]
     list_counter = 0
-    for _ in range(len(gui_message_controller.current_prediction_list)):
-        display_list[_] = gui_message_controller.current_prediction_list[_]
+    for _ in range(len(gmc.current_prediction_list)):
+        display_list[_] = gmc.current_prediction_list[_]
         list_counter += 1
         if list_counter == 5:
             break
-    if response["origin_data"] == gui_message_controller.current_search_term:
+    if response_inp["request"]["origin_data"] == gmc.current_search_term:
         if placeholder_text != "No Data Available":
             eel.updateSearchAutocompleteDropdownFields(display_list)
         else:
             eel.updateSearchAutocompleteDropdownFields([placeholder_text, "", "", "", ""])
-        end_time = time.time()
-        print(f"Total time: {end_time - gui_message_controller.start_time}")
+        print(f"Autocomplete time: {time.time() - gui_message_controller.start_time}")
     else:
         print("Discarding autocomplete set")
 
@@ -342,7 +334,6 @@ def last_highlight_update(element):
         An integer 1 - 5 representing the last highlighted autocomplete query from top to bottom.
     """
     gui_message_controller.last_highlighted = element
-
 
 
 # DAILY WIDGET | RAIN
@@ -794,19 +785,10 @@ if __name__ == '__main__':
     gui_message_controller = GuiMessageController()
 
     # Starts the incoming message loop thread
-    inbound_message_manager = InboundMessageManager(gui_message_controller)
-    inbound_message_manager_thread = threading.Thread(target=inbound_message_manager.run, daemon=True)
+    inbound_message_manager = inbound_message_manager.InboundMessageManager(gui_message_controller)
+    inbound_message_manager_thread = threading.Thread(target=inbound_message_manager.receive_message, daemon=True)
     inbound_message_manager_thread.start()
 
-    # Starts the outgoing message loop thread
-    outbound_message_manager = OutboundMessageManager(gui_message_controller)
-    outbound_message_manager_thread = threading.Thread(target=outbound_message_manager.run, daemon=True)
-    outbound_message_manager_thread.start()
-
-    # Starts the api manager loop thread
-    api_manager = APIManager(gui_message_controller)
-    api_manager_thread = threading.Thread(target=api_manager.run, daemon=True)
-    api_manager_thread.start()
 
     # Starts the incoming message loop thread
     eel.spawn(gui_message_controller.main)

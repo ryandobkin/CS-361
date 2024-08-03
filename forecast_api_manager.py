@@ -6,6 +6,7 @@ import GLOBALS
 
 OPENUV_API_KEY = GLOBALS.OPENUV_API_KEY
 
+
 def request_weather_json_general(lat_lng):
     """
     Requests the first json returned from the weather.gov api.
