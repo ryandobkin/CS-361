@@ -12,9 +12,7 @@
 To use the program, first install all files in requirements.txt.
 
 After dependencies are installed, run each of the following programs:
-- gui_manager.py
-- frontend_manager.py
-- forecast_service.py
+- main.py
 
 In addition, in order to actually use the Google Places (New) API, you must have a valid API Key.
 I do not want to upload it to GitHub in case it's used maliciously, so I have attached it in the assignment submission at the end of the file.
