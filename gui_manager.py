@@ -1,11 +1,9 @@
 import eel
 import inbound_message_manager
 import outbound_message_manager
-from gui_api_manager import APIManager
 import threading
 import time
 import json
-import zmq
 
 # Globals
 # NO LONGER ACCURATE WITH .SVGs
@@ -24,6 +22,9 @@ class GuiMessageController:
         self.socket_port_in = '5558'
         self.socket_port_forecast_service = '5556'
         self.socket_port_api_interface = '5559'
+        self.socket_port_hourly_forecast_microservice = '5560'
+        self.socket_port_location_determination_microservice = '5561'
+        self.socket_port_detailed_weather_microservice = '5562'
         self.inbound_queue = []
         self.current_prediction_list = [""]
         self.api_request_list = []
@@ -33,6 +34,7 @@ class GuiMessageController:
         self.is_test = IS_TEST
         self.current_day_selection = 0
         self.timer_start = 0
+        self.inbound_mm = inbound_message_manager
 
     def main(self):
         """
@@ -50,7 +52,7 @@ class GuiMessageController:
             try:
                 if self.is_test:
                     self.is_test = False
-                    self.inbound_queue.append(json.load(open('gui_forecast_example.json')))
+                    self.inbound_queue.append(json.load(open('Examples/gui_forecast_example.json')))
                 if len(self.inbound_queue) > 0:
                     message = self.inbound_queue.pop(0)
                     print(f"Processing Incoming Message: {message}")
@@ -147,6 +149,9 @@ class GuiMessageController:
         update_daily_weather_condition_graphic(0, split_sf, 'now')
         update_now(wf['temperature'], wf['maxTemperature'], wf['minTemperature'], correct_condition_terms(wf['shortForecast'].split(' ')), wf['apparentTemperature'])
 
+        # for the cc widgets
+        cc_data = outbound_message_manager.send_message(widget_forecast, self.socket_port_detailed_weather_microservice)
+
     def update_alert_forecast(self, alert_forecast):
         """
         Updates the alert widget with incoming information when called.
@@ -200,9 +205,10 @@ def run():
     """
     try:
         eel.init('web')
-        eel.start('index.html', size=(1614, 937), block=True)
+        eel.start('index.html', size=(1294, 756), block=True)
     except KeyboardInterrupt:
         exit(4)
+
 
 # UPDATES CURRENT DAY SELECTED
 @eel.expose
@@ -758,40 +764,18 @@ def get_graphic_offset(graphic_name="sunny", width=72, height=72):
     return pxoffsetx, pxoffsety
 
 
-def test():
-    eel.sleep(1)
-    print("START OF UNIT TEST")
-    update_hourly_graphic()
-    update_alert(False)
-    eel.sleep(15)
-    update_location("newLocation")
-    eel.sleep(1)
-    update_daily_rain_percent(0, 33)
-    eel.sleep(1)
-    update_daily_wind(0, 'NW', 14)
-    eel.sleep(1)
-    update_daily_hilo(0, 88, 76)
-    eel.sleep(1)
-    update_daily_weather_condition_text(0, "sunny")
-    eel.sleep(1)
-    update_daily_weather_condition_graphic(0, "partly_cloudy")
-    eel.sleep(1)
-    update_daily_date(0, "Tomorrow")
-    eel.sleep(1)
-    print("DONE WITH UNIT TEST")
-
-
-if __name__ == '__main__':
+def start_program():
+    global gui_message_controller
     gui_message_controller = GuiMessageController()
-
     # Starts the incoming message loop thread
-    inbound_message_manager = inbound_message_manager.InboundMessageManager(gui_message_controller)
+    inbound_message_manager = gui_message_controller.inbound_mm.InboundMessageManager(gui_message_controller)
     inbound_message_manager_thread = threading.Thread(target=inbound_message_manager.receive_message, daemon=True)
     inbound_message_manager_thread.start()
-
 
     # Starts the incoming message loop thread
     eel.spawn(gui_message_controller.main)
 
     run()
 
+if __name__ == '__main__':
+    start_program()

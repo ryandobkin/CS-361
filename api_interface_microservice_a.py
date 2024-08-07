@@ -3,11 +3,10 @@ import json
 import requests
 import zmq
 import GLOBALS
-import os
 from groq import Groq
 
 # Written by: Ryan Dobkin
-# CS 361 Microservice A
+# CS 361 Microservice-A
 
 SOCKET_PORT = '5559'
 GOOGLE_API_KEY = GLOBALS.GOOGLE_API_KEY
@@ -24,7 +23,9 @@ def main():
     try:
         while True:
             #  AWAIT CLIENT CONNECTION
+            print("[API INTERFACE] Awaiting connection...")
             message = socket.recv()
+            print("[Converter] Received connection...")
             print(f"Received request: {message.decode()}")
 
             api_interface = APIInterface(json.loads(message.decode()))
@@ -77,6 +78,10 @@ class APIInterface:
             self.nws(self.request["data"])
         elif service == "ai":
             self.ai(self.request["data"])
+        elif service == "uv":
+            self.uv(self.request["data"])
+        elif service == "sun":
+            self.sun(self.request["data"])
         else:
             self.error("parser")
 
@@ -194,6 +199,41 @@ class APIInterface:
         except:
             self.error("ai")
 
+    def uv(self, payload):
+        """
+        Gets data from the Real-Time UV Index API
+        """
+        try:
+            base_url = 'https://currentuvindex.com/api/v1/uvi'
+            querystring = {"latitude": str(payload[0]), "longitude": str(payload[1])}
+            headers = {"Accept": "application/json"}
+            response = requests.get(base_url, headers=headers, params=querystring)
+            self.return_response({
+                "service": "uv",
+                "request": self.request,
+                "response": response.json(),
+                "time_taken": (time.time() - self.start_time)})
+        except:
+            self.error("uv")
+
+    def sun(self, payload):
+        """
+        Gets data from the sunrise-sunset.org API
+        """
+        try:
+            url = 'https://api.sunrise-sunset.org/json'
+            query = {"lat": payload[0], "lng": payload[1]}
+            headers = {"Accept": "application/json"}
+            response = requests.get(url, params=query)
+            print(response.json())
+            self.return_response({
+                "service": "uv",
+                "requests": self.request,
+                "response": response.json(),
+                "time_taken": (time.time() - self.start_time)})
+        except:
+            self.error("sun")
+
     def return_response(self, payload):
         """
         Returns a response to the request port.
@@ -206,8 +246,12 @@ class APIInterface:
         """
         self.return_response({"service": self.request["service"],
                               "request": self.request,
-                              "response": f"ERROR: {error_point} service received an invalid request."})
+                              "response": f"ERROR: {error_point} service received an invalid request.",
+                              "time_taken": time.time() - self.start_time})
 
+
+def start_program():
+    main()
 
 if __name__ == '__main__':
-    main()
+    start_program()

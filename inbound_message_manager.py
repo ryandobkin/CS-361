@@ -13,21 +13,6 @@ class InboundMessageManager:
         self.inbound_queue = service.inbound_queue
         self.socket_port = service.socket_port_in
 
-#     def run(self):
-#         """
-#         Establishes socket
-#         """
-#         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-#             server_socket.bind((self.inbound_ip, self.inbound_port))
-#             server_socket.listen()
-#             print(f"[Socket Inbound] Listening on ({self.inbound_ip}, {self.inbound_port})")
-#
-#             while True:
-#                 client_socket, client_address = server_socket.accept()
-#                 print("[Socket Inbound] Connection Accepted")
-#                 client_thread = threading.Thread(target=self.receive_message, args=(client_socket, client_address), daemon=True)
-#                 client_thread.start()
-
     def receive_message(self):
         """
         Receives messages incoming over TCP connections from a given service.

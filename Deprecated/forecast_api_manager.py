@@ -4,7 +4,7 @@ import json
 import time
 import GLOBALS
 
-OPENUV_API_KEY = GLOBALS.OPENUV_API_KEY
+OPENUV_API_KEY = GLOBALS.AI_API_KEY
 
 
 def request_weather_json_general(lat_lng):

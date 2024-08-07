@@ -1,15 +1,13 @@
 import inbound_message_manager
 import outbound_message_manager
-import forecast_api_manager
+from Deprecated import forecast_api_manager
 import threading
 import time
 import json
 from datetime import datetime
-import eel
 import requests
 
 # Will use sample request and will not request from OpenUV API, using sample response instead
-IS_TEST = False
 DATETIME = datetime
 
 
@@ -31,9 +29,11 @@ class ForecastController:
         self.active_alert_dict = None
         self.forecast_hourly_url = None
         self.forecast_hourly_dict = None
+        self.sun_data = None
+        self.sun_json = None
         self.points_data_widget_dict = None
-        self.open_uv_json = None
-        self.open_uv_data = None
+        self.uv_json = None
+        self.uv_data = None
         self.grid_id = None
         self.zone_id = None
         self.radar_station = None
@@ -43,8 +43,7 @@ class ForecastController:
         self.last_request = None
         self.outbound_queue = []
         self.inbound_queue = []
-        self.is_test = IS_TEST
-        self.disable_uv_api = True
+        self.is_test = True
 
     def run(self):
         """
@@ -56,22 +55,23 @@ class ForecastController:
             try:
                 if self.is_test:
                     self.is_test = False
-                    self.disable_uv_api = True
                     self.test_cord_list = {"Newport": [36.6041944, -117.8738554], "Durham": [36.0763129, -78.71559],
                                            "Palm Springs": [33.829722, -116.534434]}
-                    self.inbound_queue.append({"socket": ['127.0.0.2', 23457], "type": "request",
-                                               "service": "forecast", "data": self.test_cord_list["Palm Springs"]})
+                    self.inbound_queue.append({"service": "forecast", "data": self.test_cord_list["Palm Springs"]})
                 if len(self.inbound_queue) > 0:
+                    print("INBOUND QUEUE RECEIVED")
                     self.last_request = self.inbound_queue.pop(0)
+                    print(self.last_request)
                     if self.last_request["service"] == "forecast":
                         self.get_general_weather_json(self.last_request)
                         self.get_general_forecast_data(self.points_json)
-                        self.get_openuv_data()
+                        self.get_uv_data()
+                        self.get_sun_data()
                         self.parse_daily_forecast()
                         self.parse_gridpoints_forecast()
-                        self.parse_openuv_data()
                         self.parse_hourly_forecast()
                         self.parse_alert_forecast()
+                        self.print_all()
                         self.update_gui()
                         #self.print_all()
                 time.sleep(0.1)
@@ -84,7 +84,7 @@ class ForecastController:
         thing_list = [{"forecast_daily_dict": self.forecast_daily_dict},
                       {"points_forecast_daily_dict": self.points_data_daily_dict},
                       {"points_forecast_widget_dict": self.points_data_widget_dict},
-                      {"active_alerts_dict": self.active_alert_dict}, {"open_uv_dict": self.open_uv_data},
+                      {"active_alerts_dict": self.active_alert_dict}, {"uv_dict": self.uv_data},
                       {"forecast_hourly_dict": self.forecast_hourly_dict}]
         i = 0
         for _ in thing_list:
@@ -138,13 +138,13 @@ class ForecastController:
             outbound_hourly_forecast_dict.update(hourly_update)
         outbound_widget_forecast_dict = {
             "sunrise_sunset": {
-                "sunrise": self.open_uv_data['sunrise'],
-                "sunset": self.open_uv_data['sunset'],
-                "dawn": self.open_uv_data['dawn'],
-                "dusk": self.open_uv_data['dusk']},
+                "sunrise": self.uv_data['sunrise'],
+                "sunset": self.uv_data['sunset'],
+                "dawn": self.uv_data['dawn'],
+                "dusk": self.uv_data['dusk']},
             "uv_index": {
-                "uv": self.open_uv_data['uv'],
-                "uv_max": self.open_uv_data['uv_max']
+                "uv": self.uv_data['uv'],
+                "uv_max": self.uv_data['uv_max']
             },
             "wind": {
                 "windChill": self.points_data_widget_dict['windChill'],
@@ -594,44 +594,30 @@ class ForecastController:
         else:
             self.active_alert_dict = None
 
-    def parse_openuv_data(self):
+    def get_uv_data(self):
         """
-        Gets OpenUV.io API UV Forecast data.
-        https://www.openuv.io/dashboard - limit to 50 requests a day
-        uv-index categories: https://www.weather.gov/abr/uv-index
-        could also use EPA API, not sure
-        https://www.epa.gov/data/application-programming-interface-api
+        Gets the relevant json from Current UV Index API.
+        https://currentuvindex.com/api
+        """
+        response_json = outbound_message_manager.send_message({"service": "uv", "data": self.lng_lat},
+                                                              self.socket_port_api_interface_microservice)
+        self.uv_json = response_json["response"]
+        self.uv_data = {"uvi": self.uv_json["now"]["uvi"]}
 
-        Updates self.open_uv_data to:
-        {"uv": 0, "uv_max": 0, "ozone": 0, "safe_exposure_time": {"st1": 0, "st2": 0, ...},
-        "sunrise": "2024-07-18T12:54:53.919Z", "sunset": ""2024-07-19T03:01:16.102Z",
-        "dawn": "2024-07-18T12:26:48.137Z", "dusk": "2024-07-19T03:29:21.884Z"}
+    def get_sun_data(self):
         """
-        open_uv_json = self.open_uv_json
-        ouv = open_uv_json["result"]
-        open_uv_data = {
-            "uv": ouv["uv"], "uv_max": ouv["uv_max"], "ozone": ouv["ozone"],
-            "safe_exposure_time": ouv["safe_exposure_time"], "sunrise": ouv["sun_info"]["sun_times"]["sunrise"],
-            "sunset": ouv["sun_info"]["sun_times"]["sunset"], "dawn": ouv["sun_info"]["sun_times"]["dawn"],
-            "dusk": ouv["sun_info"]["sun_times"]["dusk"]
-        }
-        self.open_uv_data = open_uv_data
-
-    def get_openuv_data(self):
+        Gets sun data from sunrise-sunset.org/api
         """
-        Gets the relevant json from OpenUV.io API.
-        https://www.openuv.io/dashboard
-        """
-        if self.disable_uv_api:
-            f = open('openuv_example.json')
-            response_json = json.load(f)
-            f.close()
-        else:
-            response_json = forecast_api_manager.get_openuv_json(self.lng_lat)
-        self.open_uv_json = response_json
+        response = outbound_message_manager.send_message({"service": "sun", "data": self.lng_lat},
+                                                         self.socket_port_api_interface_microservice)
+        self.sun_json = response["response"]["results"]
+        self.sun_data = {"sunrise": self.sun_json["sunrise"],
+                         "sunset": self.sun_json["sunset"],
+                         "noon": self.sun_json["solar_noon"],
+                         "day_length": self.sun_json["day_length"]}
 
 
-if __name__ == '__main__':
+def start_program():
     forecast_controller = ForecastController()
 
     # Starts the incoming message loop thread
@@ -641,3 +627,6 @@ if __name__ == '__main__':
 
     forecast_controller.run()
 
+
+if __name__ == '__main__':
+    start_program()
