@@ -3,7 +3,6 @@ import inbound_message_manager
 import outbound_message_manager
 import threading
 import time
-import json
 
 # Globals
 # NO LONGER ACCURATE WITH .SVGs
@@ -42,7 +41,9 @@ class GuiMessageController:
         """
         eel.spawn(self.inbound_queue_processor)
         eel.spawn(self.autocomplete_update_loop)
-        eel.sleep(1)
+        outbound_message_manager.send_message({"service": "location", "type": "coords"}, '5563')
+
+        eel.sleep(.5)
 
     def inbound_queue_processor(self):
         """
@@ -50,14 +51,13 @@ class GuiMessageController:
         """
         while True:
             try:
-                if self.is_test:
-                    self.is_test = False
-                    self.inbound_queue.append(json.load(open('Examples/gui_forecast_example.json')))
                 if len(self.inbound_queue) > 0:
                     message = self.inbound_queue.pop(0)
                     print(f"Processing Incoming Message: {message}")
                     if message["service"] == "forecast":
                         self.update_forecast(message)
+                    if message["service"] == 'locate_me':
+                        self.update_forecast_request(message)
             except KeyboardInterrupt as e:
                 print("Inbound Processing Error:", e)
             eel.sleep(.1)
@@ -92,14 +92,10 @@ class GuiMessageController:
         Sends a request to the forecast service via the frontend manager to get updates location data.
         """
         print(request)
-        if request["service"] != "geocoding":
-            # self.api_response_list.append(geocoding_coordinates)
-            print("GUI MANAGER UPDATE FORECAST REQUEST - Wrong update message received")
-        else:
-            request_message = {"service": "forecast", "data": request["response"]}
-            ack = outbound_message_manager.send_message(request_message, self.socket_port_forecast_service)
-            self.timer_start = time.time()
-            print("GUI ACK", ack)
+        request_message = {"service": "forecast", "data": request["response"]}
+        ack = outbound_message_manager.send_message(request_message, self.socket_port_forecast_service)
+        self.timer_start = time.time()
+        print("GUI ACK", ack)
 
     def update_forecast(self, forecast_message):
         """
@@ -107,6 +103,7 @@ class GuiMessageController:
         """
         try:
             print(f"Forecast req+res time: {time.time() - self.timer_start}")
+            update_location(forecast_message["data"]["location"])
             forecast = forecast_message["data"]
             daily_forecast = forecast["daily_forecast"]
             hourly_forecast = forecast["hourly_forecast"]
@@ -122,16 +119,14 @@ class GuiMessageController:
             print("UpdateForecast Error:", e)
 
     def update_daily_forecasts(self, daily_json):
-        print(daily_json)
         try:
             day = 0
             for daily_fc_top in daily_json:
                 # print("day", day, daily_fc_top)
                 daily_fc = daily_json[daily_fc_top]
                 update_daily_date(day, daily_fc["name"])
-                condition_list = daily_fc["shortForecast"].split(' ')
-                update_daily_weather_condition_text(day, condition_list)
-                update_daily_weather_condition_graphic(day, condition_list, 'day')
+                update_daily_weather_condition_text(day, daily_fc["shortForecast"])
+                update_daily_weather_condition_graphic(day, daily_fc["shortForecast"], 'day')
                 update_daily_hilo(day, daily_fc["maxTemperature"], daily_fc["minTemperature"])
                 if day == 6:
                     break
@@ -145,9 +140,8 @@ class GuiMessageController:
     def update_widget_forecasts(self, widget_forecast):
         wf = widget_forecast["now"]
         # Only updating NOW forecast for time being
-        split_sf = wf['shortForecast'].split(' ')
-        update_daily_weather_condition_graphic(0, split_sf, 'now')
-        update_now(wf['temperature'], wf['maxTemperature'], wf['minTemperature'], correct_condition_terms(wf['shortForecast'].split(' ')), wf['apparentTemperature'])
+        update_daily_weather_condition_graphic(0, wf["shortForecast"], 'now')
+        update_now(wf['temperature'], wf['maxTemperature'], wf['minTemperature'], wf['shortForecast'], wf['apparentTemperature'])
 
         # for the cc widgets
         cc_data = outbound_message_manager.send_message(widget_forecast, self.socket_port_detailed_weather_microservice)
@@ -206,7 +200,7 @@ def run():
     try:
         eel.init('web')
         eel.start('index.html', size=(1294, 756), block=True)
-    except KeyboardInterrupt:
+    except:
         exit(4)
 
 
@@ -418,7 +412,7 @@ def update_daily_weather_condition_text(day=0, weather_condition='Default'):
     weather_condition : str
         The new weather condition.
     """
-    weather_condition = correct_condition_terms(weather_condition)
+    #weather_condition = correct_condition_terms(weather_condition)
     daily_widget_name = 'condition_text_daily_' + str(day)
     #print(f"TEXT | Value 1: {daily_widget_name} | Value 2: {weather_condition}")
     eel.updateDailyWeatherConditionText(daily_widget_name, weather_condition)
@@ -426,7 +420,7 @@ def update_daily_weather_condition_text(day=0, weather_condition='Default'):
 
 # DAILY WIDGET | CONDITION GRAPHIC
 @eel.expose
-def update_daily_weather_condition_graphic(day=0, graphic='sunny', type='day'):
+def update_daily_weather_condition_graphic(day=0, graphic_str='sunny', type='day'):
     """
     Updates the daily forecast weather condition graphic
 
@@ -439,7 +433,7 @@ def update_daily_weather_condition_graphic(day=0, graphic='sunny', type='day'):
     type : str
         Determines if the function returns on calls on. Either 'day', or 'now'
     """
-    graphic_str = correct_condition_terms(graphic)
+    # graphic_str = correct_condition_terms(graphic)
     #print("GRAPHIC_STR: ", graphic_str)
     short_forecast_to_graphic_dict = {
         "Sunny": 'sunny', "Partly Sunny": 'partly_cloudy', "Mostly Sunny": 'sunny',
@@ -459,8 +453,22 @@ def update_daily_weather_condition_graphic(day=0, graphic='sunny', type='day'):
         "Slight Chance Showers And Thunderstorms then Sunny": 'thunderstorm_rain',
         "Showers And Thunderstorms Likely": 'thunderstorm_rain',
         "Partly Sunny then Chance Showers And Thunderstorms": 'thunderstorm_rain',
-        "Slight Chance Rain Showers then Chance Showers And Thunderstorms": 'thunderstorm_rain'
+        "Slight Chance Rain Showers then Chance Showers And Thunderstorms": 'thunderstorm_rain',
+
+        "sunny_snow": "snow", "part_sunny_snow": "snow", "snow": "snow",
+        "sunny_rain": "drizzle_rain", "part_sunny_rain": "light_rain", "rain": "heavy_rain",
+        "sunny_snow_rain": "drizzle_rain", "part_sunny_snow_rain": "hail_rain", "snow_rain": "hail_rain",
+        "sunny_thunderstorm": "light_rain", "part_sunny_thunderstorm": "thunderstorm_rain", "thunderstorms": "thunderstorm_rain",
+        "sunny_hail": "hail_rain", "part_hail": "hail_rain", "hail": "hail_rain",
+        "sunny_haze": "haze", "part_sunny_haze": "haze", "haze": "haze",
+        "sunny_fog": "fog", "part_sunny_fog": "fog", "fog": "fog"
     }
+    #url = f'https://openweathermap.org/img/wn/{graphic_id}@2x.png'
+    #print("URL", day, url)
+    #response = requests.get(url)
+    #img = Image.open(BytesIO(response.content))
+
+    print(graphic_str)
     if graphic_str in short_forecast_to_graphic_dict:
         graphic_name = short_forecast_to_graphic_dict[graphic_str]
     else:
@@ -473,12 +481,16 @@ def update_daily_weather_condition_graphic(day=0, graphic='sunny', type='day'):
         daily_widget_name = 'condition_graphic_daily_' + str(day)
     elif type == 'now':
         daily_widget_name = 'condition_graphic_now'
+    #else:
+        #daily_widget_name = 'condition_graphic_now'
+    #eel.updateDailyWeatherConditionGraphic(daily_widget_name, url, 80, 80, 15, 15)
+    print("GRAPHIC DAILY UPDATE", daily_widget_name, graphic_directory)
     eel.updateDailyWeatherConditionGraphic(daily_widget_name, graphic_directory, width, height, offsetx, offsety)
 
 
 def correct_condition_terms(graphic):
     """
-    Currently deprecated. Working on generating foreecast myself so I wont have to rely on shortForecast.
+    Currently deprecated. Working on generating forecast myself so I wont have to rely on shortForecast.
     """
     graphic_str = ""
     if type(graphic) != str:
@@ -767,15 +779,29 @@ def get_graphic_offset(graphic_name="sunny", width=72, height=72):
 def start_program():
     global gui_message_controller
     gui_message_controller = GuiMessageController()
-    # Starts the incoming message loop thread
-    inbound_message_manager = gui_message_controller.inbound_mm.InboundMessageManager(gui_message_controller)
-    inbound_message_manager_thread = threading.Thread(target=inbound_message_manager.receive_message, daemon=True)
-    inbound_message_manager_thread.start()
 
     # Starts the incoming message loop thread
     eel.spawn(gui_message_controller.main)
 
+    inbound_message_manager = gui_message_controller.inbound_mm.InboundMessageManager(gui_message_controller)
+    inbound_message_manager_thread = threading.Thread(target=inbound_message_manager.receive_message, daemon=True)
+    inbound_message_manager_thread.start()
+
     run()
+
 
 if __name__ == '__main__':
     start_program()
+    #gui_message_controller = GuiMessageController()
+
+    #inbound_message_manager = gui_message_controller.inbound_mm.InboundMessageManager(gui_message_controller)
+    #inbound_message_manager_thread = threading.Thread(target=inbound_message_manager.receive_message, daemon=True)
+    #inbound_message_manager_thread.start()
+    #eel.spawn(receive_message)
+
+    # Starts the incoming message loop thread
+    #eel.spawn(gui_message_controller.main)
+
+    #eel_thread = threading.Thread(target=run, daemon=True)
+    #eel_thread.start()
+    #run()

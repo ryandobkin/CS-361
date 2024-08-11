@@ -11,6 +11,7 @@ from groq import Groq
 SOCKET_PORT = '5559'
 GOOGLE_API_KEY = GLOBALS.GOOGLE_API_KEY
 AI_API_KEY = GLOBALS.AI_API_KEY
+OW_API_KEY = GLOBALS.OPENWEATHER_API_KEY
 
 
 context = zmq.Context()
@@ -82,6 +83,8 @@ class APIInterface:
             self.uv(self.request["data"])
         elif service == "sun":
             self.sun(self.request["data"])
+        elif service == "pressure":
+            self.pressure(self.request["data"])
         else:
             self.error("parser")
 
@@ -228,16 +231,40 @@ class APIInterface:
             print(response.json())
             self.return_response({
                 "service": "uv",
-                "requests": self.request,
+                "request": self.request,
                 "response": response.json(),
                 "time_taken": (time.time() - self.start_time)})
         except:
             self.error("sun")
 
+    def pressure(self, payload):
+        """
+        Gets pressure data from postman.com API
+        """
+        try:
+            lat, lon = payload["coordinates"]
+            if payload['type'] == 'now':
+                url = f"https://api.openweathermap.org/data/2.5/weather" \
+                      f"?lat={lat}&lon={lon}&appid={OW_API_KEY}"
+            else:
+                url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={OW_API_KEY}"
+                print("URL", url)
+            response = requests.get(url)
+
+            print(response.text)
+            self.return_response({
+                "service": "pressure",
+                "request": self.request,
+                "response": response.json(),
+                "time_taken": (time.time() - self.start_time)})
+        except:
+            self.error("pressure")
+
     def return_response(self, payload):
         """
         Returns a response to the request port.
         """
+        print(f"[API Interface] Returning response {payload}")
         socket.send(json.dumps(payload).encode())
 
     def error(self, error_point):

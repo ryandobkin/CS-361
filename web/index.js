@@ -365,7 +365,6 @@ function updateDailyWeatherConditionText(daily_widget_name, weather_condition) {
 // Updates Daily Weather Condition Graphic
 eel.expose(updateDailyWeatherConditionGraphic);
 function updateDailyWeatherConditionGraphic(daily_widget_name, graphic_directory, width, height, offsetx, offsety) {
-    //eel.print_in_python("updateDailyWeatherConditionGraphic");
     let doc_element = document.getElementById(daily_widget_name);
     doc_element.src = graphic_directory;
     doc_element.width = width;
@@ -462,7 +461,7 @@ function updateAlertWidget(event, headline, description, instruction, source) {
 // Updates Now Widget Values
 eel.expose(updateNowWidget);
 function updateNowWidget(new_temp, hilo, condition, new_feels_like) {
-    //eel.print_in_python("updateNowWidget");
+    eel.print_in_python("updateNowWidget");
     document.getElementById("feelslike_now").innerText = new_feels_like;
     document.getElementById("condition_text_now").innerText = condition;
     document.getElementById("hilo_now").innerText = hilo;

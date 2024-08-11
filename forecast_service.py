@@ -32,8 +32,12 @@ class ForecastController:
         self.sun_data = None
         self.sun_json = None
         self.points_data_widget_dict = None
+        self.current_time = None
         self.uv_json = None
         self.uv_data = None
+        self.pressure_json = None
+        self.openweather_daily_json = None
+        self.openweather_now_json = None
         self.grid_id = None
         self.zone_id = None
         self.radar_station = None
@@ -43,7 +47,9 @@ class ForecastController:
         self.last_request = None
         self.outbound_queue = []
         self.inbound_queue = []
-        self.is_test = True
+        self.is_test = False
+        self.forecast_list = None
+        self.location = None
 
     def run(self):
         """
@@ -71,6 +77,7 @@ class ForecastController:
                         self.parse_gridpoints_forecast()
                         self.parse_hourly_forecast()
                         self.parse_alert_forecast()
+                        self.get_openweathermap_data()
                         self.print_all()
                         self.update_gui()
                         #self.print_all()
@@ -103,7 +110,6 @@ class ForecastController:
             max_min_arr.append({"maxTemperature": self.points_data_daily_dict[f'maxTemperature_{_}'],
                                 "minTemperature": self.points_data_daily_dict[f'minTemperature_{_}']})
         outbound_daily_forecast_dict = {}
-        print("max_min_arr:", max_min_arr)
         daily_arr = [self.forecast_daily_dict[0]]
         for daily_dict in self.forecast_daily_dict:
             if daily_dict["isDaytime"] is True and daily_dict != daily_arr[0]:
@@ -121,7 +127,8 @@ class ForecastController:
                      "rainProb": daily_arr[_]['rain_prob'],
                      "windSpeed": daily_arr[_]['wind_speed'],
                      "windDirection": daily_arr[_]['wind_dir'],
-                     "shortForecast": daily_arr[_]['short_forecast']
+                     "shortForecast": daily_arr[_]["short_forecast"],
+                     #"icon": self.openweather_daily_json[_]["icon"]
                 }
             }
             outbound_daily_forecast_dict.update(daily_update)
@@ -132,19 +139,18 @@ class ForecastController:
                     "startTime": self.forecast_hourly_dict[_]['startTime'],
                     "endTime": self.forecast_hourly_dict[_]['endTime'],
                     "temperature": self.forecast_hourly_dict[_]['temperature'],
-                    "shortForecast": self.forecast_hourly_dict[_]['shortForecast']
+                    "shortForecast": "tempfiller",
                 }
             }
             outbound_hourly_forecast_dict.update(hourly_update)
         outbound_widget_forecast_dict = {
             "sunrise_sunset": {
-                "sunrise": self.uv_data['sunrise'],
-                "sunset": self.uv_data['sunset'],
-                "dawn": self.uv_data['dawn'],
-                "dusk": self.uv_data['dusk']},
+                "sunrise": self.sun_data['sunrise'],
+                "sunset": self.sun_data['sunset'],
+                "dawn": self.sun_data['dawn'],
+                "dusk": self.sun_data['dusk']},
             "uv_index": {
-                "uv": self.uv_data['uv'],
-                "uv_max": self.uv_data['uv_max']
+                "uvi": self.uv_data['uvi'],
             },
             "wind": {
                 "windChill": self.points_data_widget_dict['windChill'],
@@ -155,15 +161,18 @@ class ForecastController:
             "humidity": {
                 "relativeHumidity": self.points_data_widget_dict['relativeHumidity'],
                 "dewpoint": self.points_data_widget_dict['dewpoint']},
-            "pressure": {},
+            "pressure": {"pressure": self.openweather_now_json["pressure"]},
             "now": {
                 "temperature": self.forecast_hourly_dict[0]['temperature'],
                 "apparentTemperature": self.points_data_widget_dict['apparentTemperature'],
                 "maxTemperature": max_min_arr[0][f'maxTemperature'],
                 "minTemperature": max_min_arr[0][f'minTemperature'],
-                "shortForecast": self.forecast_hourly_dict[0]['shortForecast']}
+                "shortForecast": self.forecast_hourly_dict[0]['shortForecast'],
+                "mainForecast": self.openweather_now_json["main_description"],
+                "icon": self.openweather_now_json["icon"]}
         }
         update_data = {
+            "location": self.location,
             "daily_forecast": outbound_daily_forecast_dict,
             "hourly_forecast": outbound_hourly_forecast_dict,
             "widget_forecast": outbound_widget_forecast_dict,
@@ -191,7 +200,6 @@ class ForecastController:
         cord_req = {"service": "nws", "data": coordinates}
         self.points_json = outbound_message_manager.send_message(cord_req, self.socket_port_api_interface_microservice)
         self.lng_lat = coordinates
-        return True
 
     def get_general_forecast_data(self, incoming_json):
         """
@@ -206,6 +214,9 @@ class ForecastController:
         self.radar_station = incoming_json["properties"]["radarStation"]
         zone_id = self.get_json_from_url(incoming_json["properties"]["forecastZone"])
         self.zone_id = zone_id["properties"]["id"]
+        loc_city = incoming_json["properties"]["relativeLocation"]["properties"]["city"]
+        loc_state = incoming_json["properties"]["relativeLocation"]["properties"]["state"]
+        self.location = loc_city + ', ' + loc_state
         self.active_alert_url = f"https://api.weather.gov/alerts/active/zone/{self.zone_id}"
 
     def parse_daily_forecast(self):
@@ -257,6 +268,7 @@ class ForecastController:
                          "shortForecast": pd["shortForecast"]}
             hourly_arr.append(hour_dict)
         self.forecast_hourly_dict = hourly_arr
+        self.current_time = self.forecast_hourly_dict[0]["startTime"]
 
     def parse_gridpoints_forecast(self):
         """
@@ -286,7 +298,7 @@ class ForecastController:
         pd = fc_data["properties"]
         sky_arr = self.parse_sky_cover(pd["skyCover"])
         weather_arr = self.parse_weather(pd["weather"])
-        self.forecast_generator(sky_arr, weather_arr)
+        #self.forecast_generator(sky_arr, weather_arr)
 
         for _ in pd["weather"]["values"]:
             break
@@ -455,10 +467,12 @@ class ForecastController:
                             forecast_graphic = 'fog'
 
                 period_forecast.update({i: {"forecast_str": forecast_str, "forecast_graphic": forecast_graphic,
-                                        "datetime": entry_value["dateTime"], "period": entry_value["timePeriodInHr"]}})
+                                        "period": entry_value["timePeriodInHr"]}})
                 valid_datetime = entry_value["dateTime"]
             forecast_list.update({valid_datetime: period_forecast})
-        # print("AAA", forecast_list)
+        self.forecast_list = forecast_list
+        print("TIMEZONE", self.time_zone)
+        print("= AAA == AAA =", forecast_list)
 
     def parse_sky_cover(self, sky_condition_dict):
         """
@@ -614,7 +628,51 @@ class ForecastController:
         self.sun_data = {"sunrise": self.sun_json["sunrise"],
                          "sunset": self.sun_json["sunset"],
                          "noon": self.sun_json["solar_noon"],
-                         "day_length": self.sun_json["day_length"]}
+                         "day_length": self.sun_json["day_length"],
+                         "dawn": self.sun_json["civil_twilight_begin"],
+                         "dusk": self.sun_json["civil_twilight_end"]}
+
+    def get_openweathermap_data(self):
+        """
+        Gets pressure data from postman.com api.
+        """
+        response_now = outbound_message_manager.send_message({"service": "pressure",
+                                                              "data": {"coordinates": self.lng_lat,
+                                                                       "type": "now"}},
+                                                             self.socket_port_api_interface_microservice)
+        response_daily = outbound_message_manager.send_message({"service": "pressure",
+                                                                "data": {"coordinates": self.lng_lat,
+                                                                         "type": "daily"}},
+                                                               self.socket_port_api_interface_microservice)
+        self.openweather_now_json = response_now["response"]
+        self.openweather_daily_json = response_daily["response"]
+        self.parse_openweathermap_data('now')
+        self.parse_openweathermap_data('daily')
+
+    def parse_openweathermap_data(self, type):
+        """
+        Parses the data from the openweathermap.org api request.
+        """
+        if type == 'now':
+            data = self.openweather_now_json
+            openweather_dict = {"description": data["weather"][0]["description"],
+                                "main_description": data["weather"][0]["main"],
+                                "icon": data["weather"][0]["icon"],
+                                "pressure": int(data["main"]["grnd_level"]) * 0.75006}
+            self.openweather_now_json = openweather_dict
+        else:
+            data = self.openweather_daily_json
+            daily_pressure_dict = {}
+            for _ in range(5):
+                entry = data['list'][_]
+                openweather_dict = {"description": entry["weather"][0]["description"],
+                                    "main_description": entry["weather"][0]["main"],
+                                    "icon": entry["weather"][0]["icon"]}
+                daily_pressure_dict.update({(7 - _): openweather_dict})
+            self.openweather_daily_json = daily_pressure_dict
+
+
+
 
 
 def start_program():

@@ -271,7 +271,7 @@ body {
   color: #CECECE;
   position: absolute;
   top: 45px;
-  left: 103px;
+  left: 94px;
   font-family: Inter;
   font-weight: Normal;
   font-size: 13px;
@@ -295,10 +295,10 @@ body {
   color: rgba(255,255,255,1);
   position: absolute;
   top: 17px;
-  left: 103px;
+  left: 94px;
   font-family: Inter;
   font-weight: Normal;
-  font-size: 24px;
+  font-size: 22px;
   opacity: 1;
   text-align: left;
 }

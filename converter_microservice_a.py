@@ -63,3 +63,6 @@ def main():
 
 def start_program():
     main()
+
+if __name__ == '__main__':
+    start_program()
