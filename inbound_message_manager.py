@@ -22,8 +22,10 @@ class InboundMessageManager:
         socket.bind(f"tcp://*:{self.socket_port}")
         while True:
             message = socket.recv()
+            print("[IBMM] RECV")
             inbound_data = json.loads(message.decode())
             self.inbound_queue.append(inbound_data)
-            print(f"[Inbound] Received message: {inbound_data}")
+            print(f"[IBMM] Received message: {inbound_data}")
             socket.send(json.dumps("Ack").encode())
+            print("[IBMM] SEND")
 

@@ -41,7 +41,7 @@ class GuiMessageController:
         """
         eel.spawn(self.inbound_queue_processor)
         eel.spawn(self.autocomplete_update_loop)
-        outbound_message_manager.send_message({"service": "location", "type": "coords"}, '5563')
+        #outbound_message_manager.send_message({"service": "locate_me", "type": "coords"}, '5563')
 
         eel.sleep(.5)
 
@@ -51,6 +51,7 @@ class GuiMessageController:
         """
         while True:
             try:
+                #print("INBOUND_QUEUE_PROCESSOR")
                 if len(self.inbound_queue) > 0:
                     message = self.inbound_queue.pop(0)
                     print(f"Processing Incoming Message: {message}")
@@ -60,7 +61,7 @@ class GuiMessageController:
                         self.update_forecast_request(message)
             except KeyboardInterrupt as e:
                 print("Inbound Processing Error:", e)
-            eel.sleep(.1)
+            eel.sleep(0.11)
 
     def autocomplete_update_loop(self):
         """
@@ -68,6 +69,7 @@ class GuiMessageController:
         """
         last_update = 0
         while True:
+            #print("AUTOCOMPLETE_UPDATE_LOOP")
             if eel.updateSearchInFocus()() is True:
                 eel.setSearchDropdownOpacity("0.95")
                 recent_search = eel.updateSearchAutocomplete()()
@@ -85,7 +87,7 @@ class GuiMessageController:
             else:
                 eel.setSearchDropdownOpacity("0")
                 #search_autocomplete_update(None)
-            eel.sleep(0.1)
+            eel.sleep(0.10)
 
     def update_forecast_request(self, request):
         """
@@ -93,6 +95,7 @@ class GuiMessageController:
         """
         print(request)
         request_message = {"service": "forecast", "data": request["response"]}
+        print("[GUI MANAGER] Outbound Request to forecast service")
         ack = outbound_message_manager.send_message(request_message, self.socket_port_forecast_service)
         self.timer_start = time.time()
         print("GUI ACK", ack)
@@ -144,7 +147,8 @@ class GuiMessageController:
         update_now(wf['temperature'], wf['maxTemperature'], wf['minTemperature'], wf['shortForecast'], wf['apparentTemperature'])
 
         # for the cc widgets
-        cc_data = outbound_message_manager.send_message(widget_forecast, self.socket_port_detailed_weather_microservice)
+        print("[GUI MANAGER] Outbound Request to detailed weather microservice")
+        #cc_data = outbound_message_manager.send_message(widget_forecast, self.socket_port_detailed_weather_microservice)
 
     def update_alert_forecast(self, alert_forecast):
         """
@@ -250,6 +254,7 @@ def search_query(query='Default', type="enter"):
             query_out = {"service": "geocoding",
                          "data": top_query_pred}
             update_location(top_query_pred)
+            print("[GUI MANAGER] Outbound Request to api interface microservice")
             gmc.update_forecast_request(outbound_message_manager.send_message(query_out, gmc.socket_port_api_interface))
             return True
         else:
@@ -260,6 +265,7 @@ def search_query(query='Default', type="enter"):
         query_out = {"service": "geocoding",
                      "data": last_update_hl}
         update_location(last_update_hl)
+        print("[GUI MANAGER] Outbound Request to api interface microservice")
         gmc.update_forecast_request(outbound_message_manager.send_message(query_out, gmc.socket_port_api_interface))
         return True
     else:
@@ -281,6 +287,7 @@ def search_autocomplete_update(partial_query=""):
         autocomplete_query = {"service": "autocomplete",
                               "data": [True],
                               "origin_data": ""}
+        print("[GUI MANAGER] Outbound Request to api interface microservice")
         search_display_autocomplete(outbound_message_manager.
                                     send_message(autocomplete_query, gui_message_controller.socket_port_api_interface))
     else:
@@ -289,6 +296,7 @@ def search_autocomplete_update(partial_query=""):
         autocomplete_query = {"service": "autocomplete",
                               "data": partial_query,
                               "origin_data": partial_query}
+        print("[GUI MANAGER] Outbound Request to api interface microservice")
         search_display_autocomplete(outbound_message_manager.
                                     send_message(autocomplete_query, gui_message_controller.socket_port_api_interface))
 
@@ -780,18 +788,20 @@ def start_program():
     global gui_message_controller
     gui_message_controller = GuiMessageController()
 
-    # Starts the incoming message loop thread
-    eel.spawn(gui_message_controller.main)
-
     inbound_message_manager = gui_message_controller.inbound_mm.InboundMessageManager(gui_message_controller)
     inbound_message_manager_thread = threading.Thread(target=inbound_message_manager.receive_message, daemon=True)
     inbound_message_manager_thread.start()
+
+    # Starts the incoming message loop thread
+    eel.spawn(gui_message_controller.main)
 
     run()
 
 
 if __name__ == '__main__':
+
     start_program()
+
     #gui_message_controller = GuiMessageController()
 
     #inbound_message_manager = gui_message_controller.inbound_mm.InboundMessageManager(gui_message_controller)

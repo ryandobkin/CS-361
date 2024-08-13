@@ -12,13 +12,11 @@ def send_message(message, socket_port):
     socket = context.socket(zmq.REQ)
     socket.connect(f"tcp://localhost:{socket_port}")
     try:
-        #print(f"[Outbound] Connected to ({socket})")
         socket.send(json.dumps(message).encode())
-        #print(f"[Outbound] Sent message: {message}")
+        print(f"[OBMM] SEND {message}")
         message = socket.recv()
-        #print(f"[Outbound] Received reply: {message}")
+        print("[OBMM] RECV")
         context.destroy()
-        print("outbound req/res complete")
         return json.loads(message.decode())
     except ConnectionRefusedError:
         print("[Outbound] ConnectionRefusedError")
