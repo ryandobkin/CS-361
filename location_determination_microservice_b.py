@@ -9,6 +9,7 @@ import threading
 import json
 import outbound_message_manager
 import inbound_message_manager
+import time
 
 
 class LocateMe:
@@ -19,6 +20,7 @@ class LocateMe:
 
     def main(self):
         while True:
+            time.sleep(.5)
             try:
                 if len(self.inbound_queue) > 0:
                     request = self.inbound_queue.pop()
@@ -35,11 +37,16 @@ class LocateMe:
             except:
                 print("error")
 
-if __name__ == '__main__':
+
+def start_program():
     locate_me = LocateMe()
     InboundMessageManager = inbound_message_manager.InboundMessageManager(locate_me)
     inbound_message_manager_thread = threading.Thread(target=InboundMessageManager.receive_message, daemon=True)
     inbound_message_manager_thread.start()
 
     locate_me.main()
+
+
+if __name__ == '__main__':
+    start_program()
 

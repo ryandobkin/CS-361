@@ -41,7 +41,7 @@ class GuiMessageController:
         """
         eel.spawn(self.inbound_queue_processor)
         eel.spawn(self.autocomplete_update_loop)
-        #outbound_message_manager.send_message({"service": "locate_me", "type": "coords"}, '5563')
+        outbound_message_manager.send_message({"service": "locate_me", "type": "coords"}, '5563')
 
         eel.sleep(.5)
 
@@ -148,7 +148,12 @@ class GuiMessageController:
 
         # for the cc widgets
         print("[GUI MANAGER] Outbound Request to detailed weather microservice")
-        #cc_data = outbound_message_manager.send_message(widget_forecast, self.socket_port_detailed_weather_microservice)
+        cc_data = outbound_message_manager.send_message(widget_forecast, self.socket_port_detailed_weather_microservice)
+        update_sun(cc_data["sunrise"], cc_data["sunset"], cc_data["dawn"], cc_data["dusk"])
+        update_uv(cc_data["uv_index"])
+        update_humidity(cc_data["relativeHumidity"], cc_data["dewpoint"])
+        update_wind(cc_data["windSpeed"], cc_data["windDirectionStr"])
+        update_pressure(cc_data["pressure"])
 
     def update_alert_forecast(self, alert_forecast):
         """
@@ -622,15 +627,6 @@ def update_sun(sunrise=6, sunset=18, dawn=5, dusk=19):
     dusk : int
         The time of dusk
     """
-    sunrise_time, sunset_time, dawn_time, dusk_time, i = 0
-    out_list = [sunrise_time, sunset_time, dawn_time, dusk_time]
-    inp_list = [sunrise, sunset, dawn, dusk]
-    for _ in inp_list:
-        if _ % 12 > 0:
-            out_list[i] = f"{_} PM"
-        else:
-            out_list[i] = f"{_} AM"
-        i+=1
     eel.updateSunWidgetValues(sunrise, sunset, dawn, dusk)
 
 
