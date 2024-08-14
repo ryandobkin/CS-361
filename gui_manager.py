@@ -119,6 +119,7 @@ class GuiMessageController:
             self.update_daily_forecasts(daily_forecast)
             self.update_widget_forecasts(widget_forecast)
             self.update_alert_forecast(alert_forecast)
+            self.update_hourly_forecasts(hourly_forecast)
             print(f"Forecast update time: {time.time() - self.timer_start}")
         except KeyboardInterrupt as e:
             print("UpdateForecast Error:", e)
@@ -140,7 +141,13 @@ class GuiMessageController:
             print("UpdateDailyForecasts Error:", e)
 
     def update_hourly_forecasts(self, hourly_json):
-        pass
+        #print("HOURLY JSON", hourly_json)
+        update_dict = outbound_message_manager.send_message(hourly_json, self.socket_port_hourly_forecast_microservice)
+        for _ in range(7):
+            hrk = update_dict[str(_)]
+            update_hourly_temp(_, hrk["temp"])
+            #update_hourly_time(_, hrk["time"])
+            update_hourly_graphic(_)
 
     def update_widget_forecasts(self, widget_forecast):
         wf = widget_forecast["now"]
@@ -150,12 +157,16 @@ class GuiMessageController:
 
         # for the cc widgets
         print("[GUI MANAGER] Outbound Request to detailed weather microservice")
-        outbound_message_manager.send_message(widget_forecast, self.socket_port_detailed_weather_microservice)
+        cc_data = outbound_message_manager.send_message(widget_forecast, self.socket_port_detailed_weather_microservice)
+        update_sun(cc_data["sunrise"], cc_data["sunset"], cc_data["dawn"], cc_data["dusk"])
+        update_uv(cc_data["uv_index"])
+        update_humidity(f"{cc_data['relativeHumidity']} %", f"Dew point {cc_data['dewpoint']}°")
+        update_wind(f"{cc_data['windSpeed']} mph", cc_data["windDirectionStr"])
+        update_pressure(cc_data["pressure"])
 
     def update_alert_forecast(self, alert_forecast):
         """
         Updates the alert widget with incoming information when called.
-        TODO DONE Will probably have a microservice controller eventually, for now controlled by forecast_service.
         """
         print("active alerts: ", alert_forecast)
         af = alert_forecast
@@ -579,7 +590,7 @@ def update_hourly_graphic(hour=0, graphic="hail_rain"):
     graphic_directory = './Images/' + graphic + '_graphic.png'
     width, height = get_graphic_dimensions(graphic)
     offsetx, offsety = get_graphic_offset(graphic, 72, 72)
-    print(f"OFFSETX {offsetx} || OFFSETY {offsety}")
+    # print(f"OFFSETX {offsetx} || OFFSETY {offsety}")
     eel.updateHourlyWidgetGraphic(hourly_widget_name, graphic_directory, width, height, offsetx, offsety)
 
 

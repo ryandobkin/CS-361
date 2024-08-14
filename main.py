@@ -5,6 +5,7 @@ import forecast_service
 import api_interface_microservice_a
 import converter_microservice_a
 import location_determination_microservice_b
+import hourly_forecast_microservice_c
 import detailed_weather_microservice_d
 import threading
 
@@ -26,6 +27,11 @@ if __name__ == '__main__':
     location_determination_microservice_thread = \
         threading.Thread(target=location_determination_microservice_b.start_program, daemon=True)
     location_determination_microservice_thread.start()
+
+    # Microservice C Thread
+    hourly_forecast_microservice_thread = \
+        threading.Thread(target=hourly_forecast_microservice_c.start_program, daemon=True)
+    hourly_forecast_microservice_thread.start()
 
     # Microservice D Thread
     detailed_weather_microservice_thread = \

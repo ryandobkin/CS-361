@@ -1,7 +1,6 @@
 # Microservice-A
 import zmq
 import json
-import gui_manager
 
 SOCKET_PORT = '5562'
 socket_port_gui_manager = '5558'
@@ -110,25 +109,8 @@ def text_updater(message):
 
     full_wd_str = f"{wd_st} • {wd_str}"
     trd.update({"windDirectionStr": full_wd_str})
-
-    # Calls update functions
-    # Sun Update
-    gui_manager.update_sun(trd["sunrise"],
-                           trd["sunset"],
-                           trd["dawn"],
-                           trd["dusk"])
-    # UV Update
-    gui_manager.update_uv(trd["uv_index"])
-    # Humidity Update
-    gui_manager.update_humidity(f"{trd['relativeHumidity']} %",
-                                f"Dew point {trd['dewpoint']}°")
-    # Wind Update
-    gui_manager.update_wind(f"{trd['windSpeed']} mph",
-                            trd["windDirectionStr"])
-    # Pressure Update
-    gui_manager.update_pressure(trd["pressure"])
-
-    print("[DETAILED WEATHER] Current Conditions Popup Widget Update Complete")
+    print("[DETAILED WEATHER] Current Conditions Popup Widget Update Dict Returned")
+    return trd
 
 
 def graphic_updater(message):
