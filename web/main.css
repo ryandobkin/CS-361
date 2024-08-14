@@ -987,7 +987,7 @@ body {
   opacity: 1;
   color: white;
   font-size: 11px;
-  width: 80px;
+  width: 90px;
   top: 65px;
   left: 9px;
   position: absolute;
@@ -1100,7 +1100,7 @@ body {
   text-align: center;
 }
 #title_uv {
-  width: 60px;
+  width: 65px;
   color: rgba(255,255,255,1);
   position: absolute;
   top: 9px;
@@ -1194,23 +1194,23 @@ body {
   width: 155px;
   height: 60px;
   position: absolute;
-  left: 30px;
+  left: 0px;
 }
 #dawn_sun {
   position: absolute;
-  left: 30px;
+  left: 0px;
   top: 60px;
   font-size: 11px;
 }
 #dusk_sun {
   position: absolute;
-  left: 158.5px;
+  left: 128.5px;
   top: 60px;
   font-size: 11px;
 }
 #dawn_value_sun {
   position: absolute;
-  left: 30px;
+  left: 0px;
   top: 75px;
   font-size: 11px;
   width: 50px;
@@ -1218,7 +1218,7 @@ body {
 }
 #dusk_value_sun {
   position: absolute;
-  left: 135px;
+  left: 105px;
   top: 75px;
   font-size: 11px;
   width: 50px;

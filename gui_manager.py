@@ -34,6 +34,7 @@ class GuiMessageController:
         self.current_day_selection = 0
         self.timer_start = 0
         self.inbound_mm = inbound_message_manager
+        self.auto_set_location = True
 
     def main(self):
         """
@@ -41,7 +42,8 @@ class GuiMessageController:
         """
         eel.spawn(self.inbound_queue_processor)
         eel.spawn(self.autocomplete_update_loop)
-        outbound_message_manager.send_message({"service": "locate_me", "type": "coords"}, '5563')
+        if self.auto_set_location:
+            outbound_message_manager.send_message({"service": "locate_me", "type": "coords"}, '5563')
 
         eel.sleep(.5)
 
@@ -148,17 +150,12 @@ class GuiMessageController:
 
         # for the cc widgets
         print("[GUI MANAGER] Outbound Request to detailed weather microservice")
-        cc_data = outbound_message_manager.send_message(widget_forecast, self.socket_port_detailed_weather_microservice)
-        update_sun(cc_data["sunrise"], cc_data["sunset"], cc_data["dawn"], cc_data["dusk"])
-        update_uv(cc_data["uv_index"])
-        update_humidity(cc_data["relativeHumidity"], cc_data["dewpoint"])
-        update_wind(cc_data["windSpeed"], cc_data["windDirectionStr"])
-        update_pressure(cc_data["pressure"])
+        outbound_message_manager.send_message(widget_forecast, self.socket_port_detailed_weather_microservice)
 
     def update_alert_forecast(self, alert_forecast):
         """
         Updates the alert widget with incoming information when called.
-        Will probably have a microservice controller eventually, for now controlled by forecast_service.
+        TODO DONE Will probably have a microservice controller eventually, for now controlled by forecast_service.
         """
         print("active alerts: ", alert_forecast)
         af = alert_forecast
@@ -497,7 +494,7 @@ def update_daily_weather_condition_graphic(day=0, graphic_str='sunny', type='day
     #else:
         #daily_widget_name = 'condition_graphic_now'
     #eel.updateDailyWeatherConditionGraphic(daily_widget_name, url, 80, 80, 15, 15)
-    print("GRAPHIC DAILY UPDATE", daily_widget_name, graphic_directory)
+    # print("GRAPHIC DAILY UPDATE", daily_widget_name, graphic_directory)
     eel.updateDailyWeatherConditionGraphic(daily_widget_name, graphic_directory, width, height, offsetx, offsety)
 
 
@@ -671,8 +668,8 @@ def update_wind(speed=0, direction='N'):
     """
     # https://www.weather.gov/mfl/beaufort
     # Check what API gives
-    status = 'Calm'
-    eel.updateWindWidgetValues(speed, status)
+    #status = 'Calm'
+    eel.updateWindWidgetValues(speed, direction)
 
 
 # HUMIDITY WIDGET
