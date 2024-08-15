@@ -381,10 +381,10 @@ function updateDailyDate(daily_widget_name, date) {
 }
 
 // Updates Hourly Widget Temp
-eel.expose(updateHourlyWidgetTemp);
-function updateHourlyWidgetTemp(hour, temp) {
+eel.expose(updateHourlyTemp);
+function updateHourlyTemp(hourly_widget_name, temp) {
     //eel.print_in_python("updateHourlyWidgetTemp");
-    document.getElementById(hour).innerText = temp;
+    document.getElementById(hourly_widget_name).innerText = temp;
 }
 
 // Updates Hourly Widget Time
@@ -461,7 +461,7 @@ function updateAlertWidget(event, headline, description, instruction, source) {
 // Updates Now Widget Values
 eel.expose(updateNowWidget);
 function updateNowWidget(new_temp, hilo, condition, new_feels_like) {
-    eel.print_in_python("updateNowWidget");
+    //eel.print_in_python("updateNowWidget");
     document.getElementById("feelslike_now").innerText = new_feels_like;
     document.getElementById("condition_text_now").innerText = condition;
     document.getElementById("hilo_now").innerText = hilo;

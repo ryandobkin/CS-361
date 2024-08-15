@@ -1,11 +1,10 @@
 import inbound_message_manager
 import outbound_message_manager
-from Deprecated import forecast_api_manager
 import threading
 import time
-import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
+import pytz
 
 # Will use sample request and will not request from OpenUV API, using sample response instead
 DATETIME = datetime
@@ -50,6 +49,7 @@ class ForecastController:
         self.is_test = False
         self.forecast_list = None
         self.location = None
+        self.print_all = False
 
     def run(self):
         """
@@ -73,30 +73,18 @@ class ForecastController:
                         self.get_general_forecast_data(self.points_json)
                         self.get_uv_data()
                         self.get_sun_data()
-                        self.parse_daily_forecast()
                         self.parse_gridpoints_forecast()
+                        self.parse_daily_forecast()
                         self.parse_hourly_forecast()
                         self.parse_alert_forecast()
                         self.get_openweathermap_data()
-                        self.print_all()
+                        self.print_all = True
                         self.update_gui()
-                        #self.print_all()
                 time.sleep(0.1)
             except KeyboardInterrupt:
                 print("Error")
                 exit(0)
             time.sleep(0.5)
-
-    def print_all(self):
-        thing_list = [{"forecast_daily_dict": self.forecast_daily_dict},
-                      {"points_forecast_daily_dict": self.points_data_daily_dict},
-                      {"points_forecast_widget_dict": self.points_data_widget_dict},
-                      {"active_alerts_dict": self.active_alert_dict}, {"uv_dict": self.uv_data},
-                      {"forecast_hourly_dict": self.forecast_hourly_dict}]
-        i = 0
-        for _ in thing_list:
-            print(i, _, '\n')
-            i += 1
 
     def get_json_from_url(self, url):
         return requests.get(url).json()
@@ -105,6 +93,7 @@ class ForecastController:
         """
         Updates the GUI manager by creating message with update data and sending through frontend_manager
         """
+        # DAILY UPDATES
         max_min_arr = []
         for _ in range(7):
             max_min_arr.append({"maxTemperature": self.points_data_daily_dict[f'maxTemperature_{_}'],
@@ -121,30 +110,45 @@ class ForecastController:
                      "minTemperature": self.points_data_daily_dict[f'minTemperature_{_}'],
                      "name": daily_arr[_]['name'],
                      "startTime": daily_arr[_]['startTime'],
-                     "endTime": daily_arr[_]['endTime'],
                      "isDaytime": daily_arr[_]['isDaytime'],
                      "temperature": daily_arr[_]['temperature'],
                      "rainProb": daily_arr[_]['rain_prob'],
                      "windSpeed": daily_arr[_]['wind_speed'],
                      "windDirection": daily_arr[_]['wind_dir'],
                      "shortForecast": daily_arr[_]["short_forecast"],
-                     #"icon": self.openweather_daily_json[_]["icon"]
+                     "genForecast": daily_arr[_]["genForecast"]
                 }
             }
             outbound_daily_forecast_dict.update(daily_update)
-        outbound_hourly_forecast_dict = {}
+
+        # HOURLY UPDATES
+        timezone = pytz.timezone(self.time_zone)
+        current_time = datetime.now(timezone)
+        current_time = current_time.isoformat()
+        current_date, current_time = current_time.split('T')
+        co = current_time.split('-')
+        ct = co[0].split(':')
+        ct = ct[0] + ':00:00-' + co[1]
+        final_current_time = current_date + 'T' + ct
+        outbound_hourly_forecast_dict = {"currentTime": final_current_time}
+        start_entry = 0
+        for _ in range(24):
+            if outbound_hourly_forecast_dict["currentTime"] == self.forecast_hourly_dict[_]["startTime"]:
+                start_entry = _
+                break
         for _ in range(7):
             hourly_update = {
-                f"hr_{_}": {
-                    "startTime": self.forecast_hourly_dict[_]['startTime'],
-                    "endTime": self.forecast_hourly_dict[_]['endTime'],
-                    "temperature": self.forecast_hourly_dict[_]['temperature'],
-                    "shortForecast": "tempfiller",
+                self.forecast_hourly_dict[_+start_entry]['startTime']: {
+                    "temperature": self.forecast_hourly_dict[_+start_entry]['temperature'],
+                    "genForecast": self.forecast_hourly_dict[_+start_entry]['genForecast'],
                 }
             }
             outbound_hourly_forecast_dict.update(hourly_update)
+
+        # WIDGET UPDATES
         outbound_widget_forecast_dict = {
             "sunrise_sunset": {
+                "time_zone": self.time_zone,
                 "sunrise": self.sun_data['sunrise'],
                 "sunset": self.sun_data['sunset'],
                 "dawn": self.sun_data['dawn'],
@@ -167,9 +171,7 @@ class ForecastController:
                 "apparentTemperature": self.points_data_widget_dict['apparentTemperature'],
                 "maxTemperature": max_min_arr[0][f'maxTemperature'],
                 "minTemperature": max_min_arr[0][f'minTemperature'],
-                "shortForecast": self.forecast_hourly_dict[0]['shortForecast'],
-                "mainForecast": self.openweather_now_json["main_description"],
-                "icon": self.openweather_now_json["icon"]}
+                "genForecast": self.forecast_hourly_dict[0]['genForecast']}
         }
         update_data = {
             "location": self.location,
@@ -177,8 +179,14 @@ class ForecastController:
             "hourly_forecast": outbound_hourly_forecast_dict,
             "widget_forecast": outbound_widget_forecast_dict,
             "alert_forecast": self.active_alert_dict}
+        # print("UPDATE_DATA", "\nlocation", self.location,
+        #       "\ndaily_forecast", outbound_daily_forecast_dict,
+        #       "\nhourly_forecast", outbound_hourly_forecast_dict,
+        #       "\nwidget_forecast", outbound_widget_forecast_dict,
+        #       "\nalert_forecast", self.active_alert_dict)
         outbound_update_message = {"service": "forecast",
                                    "data": update_data}
+        print("fc outbound")
         ack = outbound_message_manager.send_message(outbound_update_message, self.socket_port_gui_manager)
         print("Forecast Update ACK", ack)
 
@@ -187,7 +195,7 @@ class ForecastController:
         Sends an array of data to be converted from degc to degf.
         """
         converted_dict = outbound_message_manager.send_message(conversion_dict, self.socket_port_c_to_f_microservice)
-        print(f"Original dict: {conversion_dict}\nConverted dict: {converted_dict}")
+        # print(f"Original dict: {conversion_dict}\nConverted dict: {converted_dict}")
         return converted_dict
 
     def get_general_weather_json(self, incoming_data):
@@ -232,12 +240,26 @@ class ForecastController:
         daily_data_arr = []
         for _ in range(14):
             prop_data = fc_data["properties"]["periods"][_]
+
+            incoming_datetime, period = parse_iso_time(prop_data["startTime"])
+            timezone = pytz.timezone(self.time_zone)
+            start_time = incoming_datetime.astimezone(timezone)
+            start_time = start_time.isoformat()
+            try:
+                this_gen = self.forecast_list[start_time]
+            except:
+                i = 0
+                for x in self.forecast_list:
+                    if i == _:
+                        this_gen = self.forecast_list[x]
+                        break
             daily_dict = {
-                "name": prop_data["name"], "startTime": prop_data["startTime"], "isDaytime": prop_data["isDaytime"],
-                "endTime": prop_data["endTime"], "temperature": prop_data["temperature"],
+                "name": prop_data["name"], "startTime": start_time, "period": period,
+                "isDaytime": prop_data["isDaytime"], "temperature": prop_data["temperature"],
                 "rain_prob": prop_data["probabilityOfPrecipitation"]["value"],
                 "wind_speed": prop_data["windSpeed"], "wind_dir": prop_data["windDirection"],
-                "short_forecast": prop_data["shortForecast"], "long_forecast": prop_data["detailedForecast"]}
+                "short_forecast": prop_data["shortForecast"], "long_forecast": prop_data["detailedForecast"],
+                "genForecast": this_gen}
             daily_data_arr.append(daily_dict)
         self.forecast_daily_dict = daily_data_arr
 
@@ -260,12 +282,25 @@ class ForecastController:
         converted_dewpoint_dict = self.convert_c_to_f(dewpoint_dict)
         for _ in range(24):
             pd = pd_pre[_]
-            hour_dict = {"startTime": pd["startTime"], "endTime": pd["endTime"], "temperature": pd["temperature"],
+            incoming_datetime, period = parse_iso_time(pd["startTime"])
+            timezone = pytz.timezone(self.time_zone)
+            start_time = incoming_datetime.astimezone(timezone)
+            start_time = start_time.isoformat()
+            try:
+                this_gen = self.forecast_list[start_time]
+            except:
+                i = 0
+                for x in self.forecast_list:
+                    if i == _:
+                        this_gen = self.forecast_list[x]
+                        break
+            hour_dict = {"startTime": start_time, "endTime": pd["endTime"], "temperature": pd["temperature"],
                          "temperatureUnit": pd["temperatureUnit"],
                          "probabilityOfPrecipitation": pd["probabilityOfPrecipitation"]["value"],
-                         "dewPoint": converted_dewpoint_dict[f"dewpoint_hour_{_}"], "relativeHumidity": pd["relativeHumidity"]["value"],
+                         "dewPoint": converted_dewpoint_dict[f"dewpoint_hour_{_}"],
+                         "relativeHumidity": pd["relativeHumidity"]["value"],
                          "windSpeed": pd["windSpeed"], "windDirection": pd["windDirection"],
-                         "shortForecast": pd["shortForecast"]}
+                         "genForecast": this_gen}
             hourly_arr.append(hour_dict)
         self.forecast_hourly_dict = hourly_arr
         self.current_time = self.forecast_hourly_dict[0]["startTime"]
@@ -293,12 +328,24 @@ class ForecastController:
         https://github.com/weather-gov/api/discussions/453
         Would like to add air quality
         """
+        retry = 0
         fc_data = self.get_json_from_url(self.forecast_gridpoints_url)
         max_min_dict = {}
-        pd = fc_data["properties"]
+        try:
+            pd = fc_data["properties"]
+        except Exception as e:
+            retry += 1
+            print("JSON not received properly; Error:", e)
+            if retry < 3:
+                time.sleep(0.5)
+                self.parse_gridpoints_forecast()
+            else:
+                print("JSON Retry attempts failed, exiting with Error:", e)
+                exit(2)
         sky_arr = self.parse_sky_cover(pd["skyCover"])
         weather_arr = self.parse_weather(pd["weather"])
-        #self.forecast_generator(sky_arr, weather_arr)
+        self.forecast_generator(sky_arr, weather_arr)
+        self.forecast_list = self.distribute_forecast_list(self.forecast_list)
 
         for _ in pd["weather"]["values"]:
             break
@@ -321,6 +368,27 @@ class ForecastController:
         }
         self.points_data_daily_dict = converted_max_min_dict
         self.points_data_widget_dict = widget_dict
+
+    def distribute_forecast_list(self, forecast_list):
+        """
+        Takes the forecast list created by forecast_generator and splits it into 1 hour segmented dicts.
+        """
+        distributed_forecast_dict = {}
+        for entry in forecast_list:
+            time_start = entry
+            value_entry = forecast_list[entry][0]
+            fc_str = value_entry['forecast_str']
+            fc_grc = value_entry['forecast_graphic']
+            fc_p = value_entry['period']
+            if fc_p > 1:
+                i = 0
+                for new_entry in range(fc_p):
+                    distributed_forecast_dict.update(
+                        {(time_start + timedelta(hours=i)).isoformat(): {
+                         'forecast_str': fc_str, 'forecast_graphic': fc_grc, 'forecast_period': 1}})
+                    i += 1
+        print("DISTRIBUTED FORECAST LIST", distributed_forecast_dict)
+        return distributed_forecast_dict
 
     def forecast_generator(self, sky, weather):
         """
@@ -350,9 +418,9 @@ class ForecastController:
             for weather_sub_entry in weather_entry:
                 entry_value = weather_entry[weather_sub_entry]
                 # Loads a given sub entry into weather_sub_entry - {0:{}}
-                coverage = entry_value["coverage"]
+                # coverage = entry_value["coverage"]
+                # intensity = entry_value["intensity"]
                 weather = entry_value["weather"]
-                intensity = entry_value["intensity"]
                 condition = None
 
                 for sky_entry in sky:
@@ -365,16 +433,13 @@ class ForecastController:
                 "freezing_rain": 'snow_rain', "freezing_spray": 'snow_rain', "frost": None, "hail": 'hail',
                 "haze": 'haze', "ice_crystals": None, "ice_fog": 'fog', "rain": 'rain', "rain_showers": 'rain',
                 "sleet": None, "smoke": 'haze', "snow": 'snow', "snow_showers": 'snow_rain',
-                "thunderstorms": 'thunderstorm_rain', "volcanic_ash": None, "water_spouts": None}
+                "thunderstorms": 'thunderstorm_rain', "volcanic_ash": None, "water_spouts": None, None: 'sunny'}
                 # Values: None, snow, fog, snow_rain, haze, hail, rain, thunderstorm_rain, light_rain
                 # IM SORRY I KNOW THIS IS SO BAD
                 forecast_str = None
                 forecast_graphic = None
                 if weather:
-                    if weather_valid_dict[weather] is None:
-                        forecast_str = condition
-                        forecast_graphic = condition
-                    elif weather_valid_dict[weather] == 'snow':
+                    if weather_valid_dict[weather] == 'snow':
                         if condition == ("sunny" or "clear"):
                             forecast_str = 'Sunny and Snowing'
                             forecast_graphic = 'sunny_snow'
@@ -411,7 +476,7 @@ class ForecastController:
                             forecast_str = 'Partly Sunny with Freezing Rain'
                             forecast_graphic = 'part_sunny_snow_rain'
                         elif condition == "cloudy":
-                            forecast_str = 'Overcast with Freezing Rain'
+                            forecast_str = 'Freezing Rain'
                             forecast_graphic = 'snow_rain'
                     elif weather_valid_dict[weather] == 'thunderstorm_rain':
                         if condition == ("sunny" or "clear"):
@@ -424,7 +489,7 @@ class ForecastController:
                             forecast_str = 'Partly Sunny with Thunderstorms'
                             forecast_graphic = 'part_sunny_thunderstorms'
                         elif condition == "cloudy":
-                            forecast_str = 'Overcast Thunderstorms'
+                            forecast_str = 'Thunderstorms'
                             forecast_graphic = 'thunderstorms'
                     elif weather_valid_dict[weather] == 'hail':
                         if condition == ("sunny" or "clear"):
@@ -437,7 +502,7 @@ class ForecastController:
                             forecast_str = 'Partly Sunny with Hail'
                             forecast_graphic = 'part_hail'
                         elif condition == "cloudy":
-                            forecast_str = 'Overcast and Hailing'
+                            forecast_str = 'Hailing'
                             forecast_graphic = 'hail'
                     elif weather_valid_dict[weather] == 'haze':
                         if condition == ("sunny" or "clear"):
@@ -450,7 +515,7 @@ class ForecastController:
                             forecast_str = 'Partly Sunny Haze'
                             forecast_graphic = 'part_sunny_haze'
                         elif condition == "cloudy":
-                            forecast_str = 'Cloudy Haze'
+                            forecast_str = 'Haze'
                             forecast_graphic = 'haze'
                     elif weather_valid_dict[weather] == 'fog':
                         if condition == ("sunny" or "clear"):
@@ -463,15 +528,22 @@ class ForecastController:
                             forecast_str = 'Partly Sunny and Foggy'
                             forecast_graphic = 'part_sunny_fog'
                         elif condition == "cloudy":
-                            forecast_str = 'Overcast and Foggy'
+                            forecast_str = 'Foggy'
                             forecast_graphic = 'fog'
+                    else:
+                        forecast_str = 'Sunny'
+                        forecast_graphic = 'sunny'
+                else:
+                    forecast_str = 'Sunny'
+                    forecast_graphic = 'sunny'
 
                 period_forecast.update({i: {"forecast_str": forecast_str, "forecast_graphic": forecast_graphic,
                                         "period": entry_value["timePeriodInHr"]}})
-                valid_datetime = entry_value["dateTime"]
+                incoming_datetime = entry_value["dateTime"]
+                timezone = pytz.timezone(self.time_zone)
+                valid_datetime = incoming_datetime.astimezone(timezone)
             forecast_list.update({valid_datetime: period_forecast})
         self.forecast_list = forecast_list
-        print("TIMEZONE", self.time_zone)
         print("= AAA == AAA =", forecast_list)
 
     def parse_sky_cover(self, sky_condition_dict):
@@ -483,7 +555,7 @@ class ForecastController:
         """
         sky_cover_arr = []
         for hrDict in sky_condition_dict["values"]:
-            datetime_obj, time_period = self.parse_iso_time(hrDict["validTime"])
+            datetime_obj, time_period = parse_iso_time(hrDict["validTime"])
             hour_dict = {"dateTime": datetime_obj, "timePeriodInHr": time_period}
             cloud_cover = hrDict["value"]
 
@@ -540,7 +612,8 @@ class ForecastController:
         for entry in weather_dict["values"]:
             weather_data_entry_dict = {}
             i = 0
-            valid_time, period_time_hr = self.parse_iso_time(entry["validTime"])
+            valid_time, period_time_hr = parse_iso_time(entry["validTime"])
+            # print("TIME TRANSLATION", valid_time, entry["validTime"])
             for entry_value in entry["value"]:
                 w_dict = {"coverage": entry_value["coverage"], "weather": entry_value["weather"],
                           "intensity": entry_value["intensity"], "attributes": entry_value['attributes'],
@@ -549,39 +622,6 @@ class ForecastController:
                 i += 1
             parsed_weather_arr.append(weather_data_entry_dict)
         return parsed_weather_arr
-
-    def parse_iso_time(self, incoming_time):
-        """
-        Parses a passed ISO format time string into a datetime object, and an int representing the period duration.
-
-        Parameters:
-        -----------
-        validTime : str
-            The ISO format time string. 'YYYY:DD:MM T HH:MM:SS+UTCOFFSET/P0DT0H0M'
-
-        Returns:
-        --------
-        valid_time : datetime obj
-            DateTime object containing the corresponding date data.
-        period_time_hr : int
-            Integer representing the hours of duration the time period is representing.
-        """
-        input_time, time_period = incoming_time.split('/')
-        # input_time, time_period = '2024-07-29T21:00:00+00:00/P2DT11H'.split('/')
-        valid_time = DATETIME.fromisoformat(input_time)
-        # Converts period into hours - 'PT3H' or 'P1D5TH' - ignores minutes
-        period_time_hr = 0
-        # sets day_val to result
-        if day_val := time_period.find('D'):
-            if day_val != -1:
-                # adds number of days * 24h to period_time_hr counter
-                period_time_hr += (int(time_period[day_val - 1]) * 24)
-        if hour_val := time_period.find('H'):
-            if hour_val != -1:
-                period_time_hr += (int(time_period[hour_val - 1]))
-                if time_period[hour_val - 2] != 'T':
-                    period_time_hr += (int(time_period[hour_val - 2]) * 10)
-        return valid_time, period_time_hr
 
     def parse_alert_forecast(self):
         """
@@ -658,7 +698,7 @@ class ForecastController:
             openweather_dict = {"description": data["weather"][0]["description"],
                                 "main_description": data["weather"][0]["main"],
                                 "icon": data["weather"][0]["icon"],
-                                "pressure": int(data["main"]["grnd_level"]) * 0.75006}
+                                "pressure": int(data["main"]["grnd_level"]) / 33.864}
             self.openweather_now_json = openweather_dict
         else:
             data = self.openweather_daily_json
@@ -670,6 +710,44 @@ class ForecastController:
                                     "icon": entry["weather"][0]["icon"]}
                 daily_pressure_dict.update({(7 - _): openweather_dict})
             self.openweather_daily_json = daily_pressure_dict
+
+
+def parse_iso_time(incoming_time):
+    """
+    Parses a passed ISO format time string into a datetime object, and an int representing the period duration.
+
+    Parameters:
+    -----------
+    validTime : str
+        The ISO format time string. 'YYYY:DD:MM T HH:MM:SS+UTCOFFSET/P0DT0H0M'
+
+    Returns:
+    --------
+    valid_time : datetime obj
+        DateTime object containing the corresponding date data.
+    period_time_hr : int
+        Integer representing the hours of duration the time period is representing.
+    """
+    if '/' in incoming_time:
+        input_time, time_period = incoming_time.split('/')
+        valid_time = DATETIME.fromisoformat(input_time)
+    else:
+        valid_time = DATETIME.fromisoformat(incoming_time)
+        time_period = 'T12H'
+    # input_time, time_period = '2024-07-29T21:00:00+00:00/P2DT11H'.split('/')
+    # Converts period into hours - 'PT3H' or 'P1D5TH' - ignores minutes
+    period_time_hr = 0
+    # sets day_val to result
+    if day_val := time_period.find('D'):
+        if day_val != -1:
+            # adds number of days * 24h to period_time_hr counter
+            period_time_hr += (int(time_period[day_val - 1]) * 24)
+    if hour_val := time_period.find('H'):
+        if hour_val != -1:
+            period_time_hr += (int(time_period[hour_val - 1]))
+            if time_period[hour_val - 2] != 'T':
+                period_time_hr += (int(time_period[hour_val - 2]) * 10)
+    return valid_time, period_time_hr
 
 
 

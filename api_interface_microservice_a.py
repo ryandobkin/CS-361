@@ -93,6 +93,7 @@ class APIInterface:
         Calls the Google Places (new) geocoding API with incoming request data.
         Working
         """
+        retry_counter = retry_counter
         try:
             base_url = "https://maps.googleapis.com/maps/api/geocode/json?address="
             api_key = GOOGLE_API_KEY
@@ -105,7 +106,7 @@ class APIInterface:
             if response["status"] != "OK":
                 print("[API Interface] GEOCODING REQUEST FAIL - RETRYING")
                 retry_counter += 1
-                if retry_counter == 4:
+                if retry_counter > 4:
                     self.error("geocoding timeout")
                 self.google_places_geocode(data, retry_counter)
             response_data = {

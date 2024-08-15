@@ -1,6 +1,8 @@
 # Microservice-A
 import zmq
 import json
+from datetime import datetime
+import pytz
 
 SOCKET_PORT = '5562'
 socket_port_gui_manager = '5558'
@@ -14,10 +16,9 @@ def main():
         while True:
             message = json.loads(socket.recv().decode())
             text_dict = text_updater(message)
-            #graphic_updater(message)
             socket.send(json.dumps(text_dict).encode())
-    except:
-        print("Program Interrupted")
+    except Exception as e:
+        print("Error:", e)
         exit(1)
 
 
@@ -41,11 +42,25 @@ def text_updater(message):
     sun_list = [sun_data["sunrise"], sun_data["sunset"], sun_data["dawn"], sun_data["dusk"]]
     curr = 0
     for _ in sun_list:
+        # Remove the seconds from date
         spl_m = _.split(' ')[1]
         spl_time = _.split(':')
         spl_new = f"{spl_time[0]}:{spl_time[1]} {spl_m}"
-        sun_list[curr] = spl_new
+        # Convert to datetime object so that we can convert time zone from UTC
+
+        combined_str = f'2024-08-14 {spl_new}'
+        date_format = '%Y-%m-%d %I:%M %p'
+        dt_spl = datetime.strptime(combined_str, date_format)
+        utc = pytz.timezone('UTC')
+        localized = utc.localize(dt_spl)
+        new_tz = pytz.timezone(sun_data["time_zone"])
+        convert_dt = localized.astimezone(new_tz)
+        hour = convert_dt.strftime('%I').lstrip('0')
+        local_spl = convert_dt.strftime('%M %p')
+        final_spl = f'{hour}:{local_spl}'
+        sun_list[curr] = final_spl
         curr += 1
+
     trd.update({"sunrise": sun_list[0], "sunset": sun_list[1],
                 "dawn": sun_list[2], "dusk": sun_list[3]})
     trd.update({"uv_index": message["uv_index"]["uvi"]})

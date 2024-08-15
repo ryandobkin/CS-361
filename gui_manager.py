@@ -131,8 +131,8 @@ class GuiMessageController:
                 # print("day", day, daily_fc_top)
                 daily_fc = daily_json[daily_fc_top]
                 update_daily_date(day, daily_fc["name"])
-                update_daily_weather_condition_text(day, daily_fc["shortForecast"])
-                update_daily_weather_condition_graphic(day, daily_fc["shortForecast"], 'day')
+                update_daily_weather_condition_text(day, daily_fc["genForecast"]["forecast_str"])
+                update_daily_weather_condition_graphic(day, daily_fc["genForecast"]["forecast_graphic"], 'day')
                 update_daily_hilo(day, daily_fc["maxTemperature"], daily_fc["minTemperature"])
                 if day == 6:
                     break
@@ -141,19 +141,25 @@ class GuiMessageController:
             print("UpdateDailyForecasts Error:", e)
 
     def update_hourly_forecasts(self, hourly_json):
-        #print("HOURLY JSON", hourly_json)
         update_dict = outbound_message_manager.send_message(hourly_json, self.socket_port_hourly_forecast_microservice)
-        for _ in range(7):
-            hrk = update_dict[str(_)]
-            update_hourly_temp(_, hrk["temp"])
-            #update_hourly_time(_, hrk["time"])
-            update_hourly_graphic(_)
+        i = 1
+        for _ in range(6):
+            try:
+                hrk = update_dict[str(i)]
+                update_hourly_temp(i, hrk["temp"])  # 1 error
+                update_hourly_time(i, hrk["time"])  # 1 error
+                update_daily_weather_condition_graphic(i, hrk["graphic"], 'hour')   # 2 errors
+                i += 1
+            except Exception as e:
+                print("[GUI MANAGER] Update Hourly Forecast Error:", e)
+        print("[GUI MANAGER] Hourly Forecast Updated")
 
     def update_widget_forecasts(self, widget_forecast):
         wf = widget_forecast["now"]
         # Only updating NOW forecast for time being
-        update_daily_weather_condition_graphic(0, wf["shortForecast"], 'now')
-        update_now(wf['temperature'], wf['maxTemperature'], wf['minTemperature'], wf['shortForecast'], wf['apparentTemperature'])
+        update_daily_weather_condition_graphic(0, wf["genForecast"]["forecast_graphic"], 'now')
+        update_now(wf['temperature'], wf['maxTemperature'], wf['minTemperature'],
+                   wf['genForecast']['forecast_str'], wf['apparentTemperature'])
 
         # for the cc widgets
         print("[GUI MANAGER] Outbound Request to detailed weather microservice")
@@ -269,9 +275,6 @@ def search_query(query='Default', type="enter"):
             update_location(top_query_pred)
             print("[GUI MANAGER] Outbound Request to api interface microservice")
             gmc.update_forecast_request(outbound_message_manager.send_message(query_out, gmc.socket_port_api_interface))
-            return True
-        else:
-            return False
     elif type == "click":
         last_update_hl = query
         gui_message_controller.current_search_term = last_update_hl
@@ -280,9 +283,6 @@ def search_query(query='Default', type="enter"):
         update_location(last_update_hl)
         print("[GUI MANAGER] Outbound Request to api interface microservice")
         gmc.update_forecast_request(outbound_message_manager.send_message(query_out, gmc.socket_port_api_interface))
-        return True
-    else:
-        return False
 
 
 # SEARCH WIDGET AUTOCOMPLETE
@@ -489,19 +489,24 @@ def update_daily_weather_condition_graphic(day=0, graphic_str='sunny', type='day
     #response = requests.get(url)
     #img = Image.open(BytesIO(response.content))
 
-    print(graphic_str)
+    # print(graphic_str)
     if graphic_str in short_forecast_to_graphic_dict:
         graphic_name = short_forecast_to_graphic_dict[graphic_str]
     else:
         graphic_name = 'sunny'
     graphic_directory = './Images/' + graphic_name + '_graphic.svg'
     width, height = get_graphic_dimensions(graphic_name)
-    offsetx, offsety = get_graphic_offset(graphic_name, 100, 80)
     #print(f"GRAPHIC | V1: {daily_widget_name} | V2: {graphic_directory} | V3 {width} | V4: {height} | V5: {offsetx} | V6: {offsety}")
     if type == 'day':
+        offsetx, offsety = get_graphic_offset(graphic_name, 100, 80, type)
         daily_widget_name = 'condition_graphic_daily_' + str(day)
     elif type == 'now':
+        offsetx, offsety = get_graphic_offset(graphic_name, 100, 80, type)
         daily_widget_name = 'condition_graphic_now'
+    elif type == 'hour':
+        offsetx, offsety = get_graphic_offset(graphic_name, 75, 75, type)
+        daily_widget_name = 'condition_graphic_hourly_' + str(day)
+        eel.updateHourlyWidgetGraphic(daily_widget_name, graphic_directory, width, height, offsetx, offsety)
     #else:
         #daily_widget_name = 'condition_graphic_now'
     #eel.updateDailyWeatherConditionGraphic(daily_widget_name, url, 80, 80, 15, 15)
@@ -553,12 +558,12 @@ def update_hourly_temp(hour, temp):
     """
     hourly_widget_name = 'temp_hourly_' + str(hour)
     temp_str = str(temp) + chr(176)
-    eel.updateHourlyWidgetTemp(hourly_widget_name, temp_str)
+    eel.updateHourlyTemp(hourly_widget_name, temp_str)
 
 
 # HOURLY WIDGET | TIME
 @eel.expose
-def update_hourly_time(hour, time):
+def update_hourly_time(hour=0, time_val="4 PM"):
     """
     Updates hourly times
 
@@ -570,7 +575,7 @@ def update_hourly_time(hour, time):
         The new time to be displayed.
     """
     hourly_widget_name = 'time_hourly_' + str(hour)
-    eel.updateHourlyWidgetTime(hourly_widget_name, time)
+    eel.updateHourlyWidgetTime(hourly_widget_name, time_val)
 
 
 # HOURLY WIDGET | GRAPHIC
@@ -760,7 +765,7 @@ def get_graphic_dimensions(graphic_name="sunny"):
     return graphic_dim[0], graphic_dim[1]
 
 
-def get_graphic_offset(graphic_name="sunny", width=72, height=72):
+def get_graphic_offset(graphic_name="sunny", width=72, height=72, type="day"):
     """
     Returns the graphic dimensions passed.
 

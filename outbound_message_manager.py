@@ -13,13 +13,13 @@ def send_message(message, socket_port):
     socket.connect(f"tcp://localhost:{socket_port}")
     try:
         socket.send(json.dumps(message).encode())
-        print(f"[OBMM] SEND {message}")
+        print(f"[OBMM {socket_port}] SEND {message}")
         message = socket.recv()
-        print("[OBMM] RECV")
+        print(f"[OBMM {socket_port}] RECV")
         context.destroy()
         return json.loads(message.decode())
     except ConnectionRefusedError:
-        print("[Outbound] ConnectionRefusedError")
+        print(f"[OBMM {socket_port}] ConnectionRefusedError")
     except AttributeError:
-        print("[Outbound] AttributeError")
+        print(f"[OBMM {socket_port}] AttributeError")
 
